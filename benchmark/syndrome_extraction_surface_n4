@@ -1,0 +1,31 @@
+q = alloc_data(4)
+s = alloc_helper(4)
+set_shot(1000)
+
+CNOT q0, s0
+CNOT q1, s0
+CNOT q2, s0
+CNOT q3, s0
+c0 = MEASURE s0
+deallocate_helper(s0)
+
+CNOT q0, s1
+CNOT q1, s1
+c1 = MEASURE s1
+deallocate_helper(s1)
+
+H s2
+CNOT s2, q0
+CNOT s2, q2
+H s2
+c2 = MEASURE s2
+deallocate_helper(s2)
+
+H s3
+CNOT s3, q1
+CNOT s3, q3
+H s3
+c3 = MEASURE s3
+deallocate_helper(s3)
+
+deallocate_data(q)
