@@ -5,11 +5,12 @@ from typing import Dict, List
 import numpy as np
 from qiskit.transpiler import CouplingMap
 import matplotlib.pyplot as plt
-
-
 import random
 import math
 
+from enum import Enum
+from instruction import instruction, parse_program_from_file
+from hardwares import torino_coupling_map, simple_10_qubit_coupling_map, get_10_qubit_hardware_coords, torino_qubit_coords
 
 
 class circuit_topology:
@@ -36,16 +37,81 @@ class circuit_topology:
         return self._data_helper_weight[data_qubit]
 
 
+    def __repr__(self):
+        return f"circuit_topology(data_interaction={self._data_interaction}, data_helper_interaction={self._data_helper_interaction})"
+
+
+
+
+def analyze_topo_from_instructions(inst_list: List[instruction]) -> circuit_topology:
+    """
+    We analyze the instructions to extract the circuit topology.
+    We only consider CNOT and CZ gates for interaction analysis.
+    1) data-data interactions: both qubits are data qubits (q0, q1, ...)
+    2) data-helper interactions: one qubit is data (q0, q1, ...), the other is helper (s0, s1, ...)
+    """
+    data_qubit_set=set()
+    helper_qubit_set=set()
+    data_interaction=[]
+    data_helper_interaction=[]
+
+    for inst in inst_list:
+        if inst.is_two_qubit_gate():
+            q1=inst.get_qubitaddress()[0]
+            q2=inst.get_qubitaddress()[1]
+            if q1.startswith('q') and q2.startswith('q'):
+                dq1=int(q1[1:])
+                dq2=int(q2[1:])
+                data_qubit_set.add(dq1)
+                data_qubit_set.add(dq2)
+                a,b=sorted((dq1,dq2))
+                data_interaction.append( (a,b) )
+            elif q1.startswith('q') and q2.startswith('s'):
+                dq=int(q1[1:])
+                sq=int(q2[1:])
+                data_qubit_set.add(dq)
+                helper_qubit_set.add(sq)
+                data_helper_interaction.append( (dq,sq) )
+            elif q1.startswith('s') and q2.startswith('q'):
+                dq=int(q2[1:])
+                sq=int(q1[1:])
+                data_qubit_set.add(dq)
+                helper_qubit_set.add(sq)
+                data_helper_interaction.append( (dq,sq) )
+            else:
+                #both are helper qubits, ignore
+                pass
+
+    return circuit_topology(
+        data_qubit_number=len(data_qubit_set),
+        helper_qubit_number=len(helper_qubit_set),
+        data_interaction=data_interaction,
+        data_helper_interaction=data_helper_interaction,
+    )
+
+
+
+
+class ProcessStatus(Enum):
+    WAIT_TO_START = 0
+    RUNNING = 1
+    WAIT_FOR_ANSILLA = 2
+    WAIT_FOR_T_GATE = 3
+    FINISHED = 4
+
+
 
 
 class process:
 
 
-    def __init__(self, process_id: int, num_data_qubits: int, num_helper_qubits: int, topology: circuit_topology):
+    def __init__(self, process_id: int, num_data_qubits: int, num_helper_qubits: int, inst_list=List[instruction]):
         self._process_id = process_id
         self._num_data_qubits = num_data_qubits
         self._num_helper_qubits = num_helper_qubits
-        self._topology = topology
+        self._topology = analyze_topo_from_instructions(inst_list)
+        self._inst_list = inst_list
+
 
     def get_process_id(self) -> int:
         return self._process_id
@@ -63,6 +129,8 @@ class process:
     def intro_costs(self,mapping:Dict[int, int],distance:list[list[int]])->float:
         """
         Calculate the intro cost of this process based on the given mapping and distance matrix.
+
+        Thus is defined as the sum of distance between all data qubit pairs weighted by their interaction weight.
         """
         cost = 0.0
         for i in range(self._num_data_qubits):
@@ -71,39 +139,34 @@ class process:
         return cost
 
 
-def torino_coupling_map():
-    COUPLING = [
-        [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 13], [13, 14], # The first long row
-        [0,15], [15,19], [4,16], [16,23], [8,17], [17,27], [12,18], [18,31], # Short row 1
-        [19,20], [20,21], [21,22], [22,23], [23,24], [24,25], [25,26], [26,27], [27,28], [28,29], [29,30], [30,31], [31,32], [32,33], # The second long row
-        [21,34], [34,40], [25,35], [35,44], [29,36], [36,48], [33,37], [37,52], # Short row 2
-        [38,39], [39,40], [40,41], [41,42], [42,43], [43,44], [44,45], [45,46], [46,47], [47,48], [48,49], [49,50], [50,51], [51,52], # The third long row
-        [38,53], [53,57], [42,54], [54,61], [46,55], [55,65], [50,56], [56,69], # Short row 3
-        [57,58], [58,59], [59,60], [60,61], [61,62], [62,63], [63,64], [64,65], [65,66], [66,67], [67,68], [68,69], [69,70], [70,71], # The forth long row
-        [59,72], [72,78], [63,73], [73,82], [67,74], [74,86], [71,75], [75,90], # Short row 4
-        [76,77], [77,78], [78,79], [79,80], [80,81], [81,82], [82,83], [83,84], [84,85], [85,86], [86,87], [87,88], [88,89], [89,90], # The fifth long row
-        [76,91], [91,95], [80,92], [92,99], [84,93], [93,103], [88,94], [94,107], # Short row 5
-        [95,96], [96,97], [97,98], [98,99], [99,100], [100,101], [101,102], [102,103], [103,104], [104,105], [105,106], [106,107], [107,108], [108,109], # The sixth long row
-        [97,110], [110,116], [101,111], [111,120], [105,112], [112,124],[109,113], [113,128], # Short row 6
-        [114,115], [115,116], [116,117], [117,118], [118,119], [119,120], [120,121], [121,122], [122,123], [123,124], [124,125], [125,126], [126,127], [127,128], # The seventh long row
-        [114,129], [118, 130], [122,131], [126,132]  # Short row 7
-    ]
-    return COUPLING
+def all_pairs_distances(n, edges) -> list[list[int]]:
+    """
+    n: number of vertices labeled 0..n-1
+    edges: list of [u, v] pairs (undirected)
+    returns: n x n list of ints, distances; -1 means unreachable
+    """
+    # build adjacency list
+    adj = [[] for _ in range(n)]
+    for u, v in edges:
+        if not (0 <= u < n and 0 <= v < n):
+            raise ValueError(f"Edge ({u},{v}) out of range for n={n}")
+        adj[u].append(v)
+        adj[v].append(u)
+
+    # BFS from every source
+    dist = [[-1] * n for _ in range(n)]
+    for s in range(n):
+        dq = deque([s])
+        dist[s][s] = 0
+        while dq:
+            u = dq.popleft()
+            for w in adj[u]:
+                if dist[s][w] == -1:
+                    dist[s][w] = dist[s][u] + 1
+                    dq.append(w)
+    return dist
 
 
-def simple_10_qubit_coupling_map():
-    COUPLING = [[0, 1], [1, 2], [2, 3], [3, 4], [0,5], [1,6], [2,7], [3,8], [4,9],[5,6], [6,7],[7,8],[8,9]]  # linear chain
-    return COUPLING
-
-def get_10_qubit_hardware_coords() -> list[tuple[float, float]]:
-    edge_length = 1
-    coords = [ ]
-    for i in range(10):
-        if i<5:
-            coords.append( (float(i*edge_length), 0.0) )
-        else:
-            coords.append( (float((i-5)*edge_length), -edge_length))
-    return coords
 
 
 def plot_process_schedule_on_10_qubit_hardware(coupling_edges: list[list[int]],
@@ -161,29 +224,6 @@ def plot_process_schedule_on_10_qubit_hardware(coupling_edges: list[list[int]],
     plt.close(fig)
 
 
-def torino_qubit_coords() -> list[tuple[float, float]]:
-    coords = [(0.0, 0.0)] * 133
-
-    # Long rows: each has 16 nodes, at x=0..15
-    long_starts = [0, 19, 38, 57, 76, 95, 114]
-    for r, start in enumerate(long_starts):
-        y = -2.0 * r
-        for k in range(15):
-            coords[start + k] = (float(k), y)
-
-    # Short rows: each has 4 nodes, alternating column anchors
-    short_starts = [15, 34, 53, 72, 91, 110, 129]
-
-    anchors_odd  = [0, 4, 8, 12]  # short rows 1,3,5,7
-    anchors_even = [2, 6, 10, 14]   # short rows 2,4,6
-    for s, start in enumerate(short_starts):
-        y = -(2.0 * s + 1.0)
-        xs = anchors_odd if (s % 2 == 0) else anchors_even
-        for j, x in enumerate(xs):
-            coords[start + j] = (float(x), y)
-
-    return coords
-
 
 
 def plot_process_schedule_on_torino(coupling_edges: list[list[int]],
@@ -234,301 +274,6 @@ def plot_process_schedule_on_torino(coupling_edges: list[list[int]],
     plt.close(fig)
 
 
-def all_pairs_distances(n, edges) -> list[list[int]]:
-    """
-    n: number of vertices labeled 0..n-1
-    edges: list of [u, v] pairs (undirected)
-    returns: n x n list of ints, distances; -1 means unreachable
-    """
-    # build adjacency list
-    adj = [[] for _ in range(n)]
-    for u, v in edges:
-        if not (0 <= u < n and 0 <= v < n):
-            raise ValueError(f"Edge ({u},{v}) out of range for n={n}")
-        adj[u].append(v)
-        adj[v].append(u)
-
-    # BFS from every source
-    dist = [[-1] * n for _ in range(n)]
-    for s in range(n):
-        dq = deque([s])
-        dist[s][s] = 0
-        while dq:
-            u = dq.popleft()
-            for w in adj[u]:
-                if dist[s][w] == -1:
-                    dist[s][w] = dist[s][u] + 1
-                    dq.append(w)
-    return dist
-
-
-alpha=0.3
-beta=100
-gamma=300
-delta=200
-N_qubits=133
-hardware_distance_pair=all_pairs_distances(N_qubits, torino_coupling_map())
-# N_qubits=10
-# hardware_distance_pair=all_pairs_distances(N_qubits, simple_10_qubit_coupling_map())
-
-def calculate_mapping_cost(process_list: List[process],mapping: Dict[int, tuple[int, int]]) -> float:
-    """
-    Input:
-        mapping: Dict[int, tuple[int, int]]
-            A dictionary where the key is physical, and the value is a tuple (process_id, data_qubit_index)
-        
-        Output:
-            A float representing the total mapping cost, calculated as:
-            cost = alpha * intro_cost + beta * inter_cost + gamma * helper_cost
-    """
-
-    # Initialize the helper qubit Zone
-    is_helper_qubit={phys:True for phys in range(N_qubits)}
-    for phys in mapping.keys():
-        is_helper_qubit[phys]=False
-    helper_qubit_list=[phys for phys in range(N_qubits) if is_helper_qubit[phys]]
-    #print("Helper qubit list:", helper_qubit_list)
-
-    #Convert the mapping L to the mapping per process
-    proc_mapping={pid:{} for pid in [proc.get_process_id() for proc in process_list]}
-    for phys,(pid,data_qubit) in mapping.items():
-        proc_mapping[pid][data_qubit]=phys
-
-
-    intro_cost=0.0
-    #First step, calculate the intra cost of all process
-    for proc in process_list:
-        intro_cost+=proc.intro_costs(proc_mapping[proc.get_process_id()],hardware_distance_pair)
-
-
-    #print("Intro cost:", intro_cost)
-
-
-    compact_cost=0.0
-    #Second step, calculate the compact cost of all process
-    #This is defined as the distance between the furthest data qubits of a process
-    for proc in process_list:
-        max_distance=0.0
-        for data_qubit_i in range(proc.get_num_data_qubits()):
-            phys_i=proc_mapping[proc.get_process_id()][data_qubit_i]
-            for data_qubit_j in range(data_qubit_i+1,proc.get_num_data_qubits()):
-                phys_j=proc_mapping[proc.get_process_id()][data_qubit_j]
-                max_distance=max(max_distance,hardware_distance_pair[phys_i][phys_j])
-        compact_cost+=max_distance
-
-
-
-    inter_cost=0.0
-    #First step, calculate the inter cost across all processes
-    #This is done by calculatin the average distance between all mapped data qubits of two processes 
-    for i in range(len(process_list)):
-        for j in range(i+1,len(process_list)):
-            proc_i=process_list[i]
-            proc_j=process_list[j]
-            pid_i=proc_i.get_process_id()
-            pid_j=proc_j.get_process_id()
-            total_distance=0.0
-            count=0
-            for data_qubit_i in range(proc_i.get_num_data_qubits()):
-                phys_i=proc_mapping[pid_i][data_qubit_i]
-                for data_qubit_j in range(proc_j.get_num_data_qubits()):
-                    phys_j=proc_mapping[pid_j][data_qubit_j]
-                    total_distance+=hardware_distance_pair[phys_i][phys_j]
-                    count+=1
-            if count>0:
-                inter_cost+=total_distance/count
-
-
-    #print("Inter cost:", inter_cost)
-
-
-    helper_cost=0.0
-    #Last step, calculate the helper cost of all process
-    #This is done by calculating the weighted distance from data qubits to unmapped helper qubit Zone
-    for proc in process_list:
-        for data_qubit in range(proc.get_num_data_qubits()):
-            phys=proc_mapping[proc.get_process_id()][data_qubit]
-            helper_weight=proc.get_topology().get_data_helper_weight(data_qubit)
-            if helper_weight==0:
-                continue
-            min_helper_distance=10000
-            for helper_qubit in helper_qubit_list:
-                min_helper_distance=min(min_helper_distance,hardware_distance_pair[phys][helper_qubit])
-            helper_cost+=min_helper_distance*helper_weight
-
-    #print("Helper cost:", helper_cost)
-
-    return alpha * intro_cost - beta * inter_cost + gamma * helper_cost + delta * compact_cost
-
-
-
-
-
-
-
-def random_initial_mapping(process_list: List[process],
-                           n_qubits: int) -> Dict[int, tuple[int, int]]:
-    """
-    Randomly assign all data qubits of all processes to distinct physical qubits.
-    Remaining physical qubits are helpers (implicitly).
-    """
-    total_data_qubits = sum(p.get_num_data_qubits() for p in process_list)
-    if total_data_qubits > n_qubits:
-        raise ValueError("Not enough physical qubits for all data qubits")
-
-    phys_indices = list(range(n_qubits))
-    random.shuffle(phys_indices)
-    used_phys = phys_indices[:total_data_qubits]
-
-    mapping = {}
-    k = 0
-    for proc in process_list:
-        pid = proc.get_process_id()
-        for dq in range(proc.get_num_data_qubits()):
-            mapping[used_phys[k]] = (pid, dq)
-            k += 1
-    return mapping
-
-
-
-def greedy_initial_mapping(process_list: List[process],
-                           n_qubits: int,
-                           distance: List[List[int]]) -> Dict[int, tuple[int, int]]:
-    """
-    Greedy placement:
-    - Place the very first data qubit of the first process on phys 0.
-    - For every next data qubit across all processes:
-         choose the unused physical qubit
-         that is closest to ANY already-used physical qubit.
-    Produces a compact cluster-like initial layout.
-    """
-    total_data_qubits = sum(p.get_num_data_qubits() for p in process_list)
-    if total_data_qubits > n_qubits:
-        raise ValueError("Not enough physical qubits for all data qubits")
-
-    mapping: Dict[int, tuple[int, int]] = {}
-
-    # --- Step 1: place the very first data qubit onto physical qubit 0 ---
-    mapping[0] = (process_list[0].get_process_id(), 0)
-
-    used_phys = {0}
-    remaining_phys = set(range(n_qubits)) - used_phys
-
-    # Iterator for (pid, data_qubit)
-    placement_list = []
-    for proc in process_list:
-        pid = proc.get_process_id()
-        for dq in range(proc.get_num_data_qubits()):
-            placement_list.append((pid, dq))
-
-    # We already placed first one, so skip it
-    placement_list = placement_list[1:]
-
-    # --- Step 2: greedy expansion ---
-    for pid, dq in placement_list:
-        best_phys = None
-        best_score = float("inf")
-
-        for phys in remaining_phys:
-            # distance to the closest used phys (cluster expansion)
-            dist_to_cluster = min(distance[phys][u] for u in used_phys)
-            if dist_to_cluster < best_score:
-                best_score = dist_to_cluster
-                best_phys = phys
-
-        # Assign the chosen physical location
-        mapping[best_phys] = (pid, dq)
-
-        # Update sets
-        used_phys.add(best_phys)
-        remaining_phys.remove(best_phys)
-
-    return mapping
-
-def propose_neighbor(mapping: Dict[int, tuple[int, int]],
-                     n_qubits: int,
-                     move_prob: float = 0.3) -> Dict[int, tuple[int, int]]:
-    """
-    Given a mapping, return a new mapping by either:
-    - Swapping two mapped physical qubits, or
-    - Moving a data qubit to a helper location.
-    """
-    new_mapping = dict(mapping)  # shallow copy is enough
-
-    used_phys = list(new_mapping.keys())
-    all_phys = list(range(n_qubits))
-    helper_phys = [p for p in all_phys if p not in used_phys]
-
-    # If we have no helper qubits, we can only swap.
-    if not helper_phys or random.random() > move_prob:
-        # swap two mapped physical locations
-        if len(used_phys) < 2:
-            return new_mapping
-        a, b = random.sample(used_phys, 2)
-        new_mapping[a], new_mapping[b] = new_mapping[b], new_mapping[a]
-    else:
-        # move one data qubit to a helper physical qubit
-        a = random.choice(used_phys)
-        h = random.choice(helper_phys)
-        new_mapping[h] = new_mapping[a]
-        del new_mapping[a]
-
-    return new_mapping
-
-
-
-def iteratively_find_the_best_mapping(process_list: List[process],
-                                      n_qubits: int,
-                                      n_restarts: int = 300,
-                                      steps_per_restart: int = 2000
-                                      ) -> Dict[int, tuple[int, int]]:
-    """
-    Heuristic search for a good mapping using simulated annealing
-    with multiple random restarts.
-
-    Returns the best mapping found.
-    """
-    global_best_mapping = None
-    global_best_cost = float("inf")
-
-    for r in range(n_restarts):
-        # 1) random initial mapping
-        # current_mapping = random_initial_mapping(process_list, n_qubits)
-        current_mapping = greedy_initial_mapping(process_list, n_qubits,hardware_distance_pair)
-        current_cost = calculate_mapping_cost(process_list, current_mapping)
-
-        # temperature schedule (very simple linear cooling)
-        # scale the initial T with magnitude of the cost to get something reasonable
-        T0 = max(1.0, abs(current_cost) * 0.1)
-
-        for step in range(steps_per_restart):
-            # temperature decreases over time
-            t = step / max(1, steps_per_restart - 1)
-            T = T0 * (1.0 - t) + 1e-3  # from T0 -> ~0
-
-            # 2) propose a neighbor and compute its cost
-            candidate_mapping = propose_neighbor(current_mapping, n_qubits)
-            candidate_cost = calculate_mapping_cost(process_list, candidate_mapping)
-
-            delta = candidate_cost - current_cost
-
-            # 3) acceptance rule (simulated annealing)
-            if delta < 0 or math.exp(-delta / T) > random.random():
-                current_mapping = candidate_mapping
-                current_cost = candidate_cost
-
-                # track global best
-                if current_cost < global_best_cost:
-                    global_best_cost = current_cost
-                    global_best_mapping = current_mapping
-
-        print(f"[Restart {r}] best so far: {global_best_cost}")
-
-    print("Final best cost:", global_best_cost)
-    return global_best_mapping
-
-
-
 def make_process_topology(num_data: int = 20,
                           num_helper: int = 10,
                           extra_edges_per_qubit: int = 2,
@@ -575,52 +320,64 @@ def make_process_topology(num_data: int = 20,
 
 
 
-
 if __name__ == "__main__":
-    random.seed(42)  # for reproducibility
+    file_path = "C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\cat_state_prep_n4"
+    inst_list, data_n, syn_n = parse_program_from_file(file_path)
 
-    # ----- build 5 processes, each with 20 data and 10 helper qubits -----
-    process_list: list[process] = []
-    NUM_PROCS = 4
-    NUM_DATA = 15
-    NUM_HELPERS = 1
 
-    for pid in range(NUM_PROCS):
-        topo = make_process_topology(
-            num_data=NUM_DATA,
-            num_helper=NUM_HELPERS,
-            extra_edges_per_qubit=30,
-            seed=100 + pid,   # different but reproducible per process
-        )
-        proc = process(
-            process_id=pid,
-            num_data_qubits=NUM_DATA,
-            num_helper_qubits=NUM_HELPERS,
-            topology=topo,
-        )
-        process_list.append(proc)
+    circ_topo = analyze_topo_from_instructions(inst_list)
 
-    # Sanity check: total data qubits must fit into hardware
-    total_data_qubits = sum(p.get_num_data_qubits() for p in process_list)
-    print("Total data qubits:", total_data_qubits, "Hardware qubits:", N_qubits)
+    print("Extracted circuit topology:", circ_topo)
 
-    # ----- run the heuristic search on Torino -----
-    best_mapping = iteratively_find_the_best_mapping(
-        process_list,
-        n_qubits=N_qubits,
-    )
 
-    print("Best mapping found:", best_mapping)
-    best_cost = calculate_mapping_cost(process_list, best_mapping)
-    print("Best cost:", best_cost)
 
-    # ----- visualize on Torino -----
-    plot_process_schedule_on_torino(
-        torino_coupling_map(),
-        process_list,
-        best_mapping,
-        out_png="best_torino_mapping_5proc_20data.png",
-    )
+
+
+# if __name__ == "__main__":
+#     random.seed(42)  # for reproducibility
+
+#     # ----- build 5 processes, each with 20 data and 10 helper qubits -----
+#     process_list: list[process] = []
+#     NUM_PROCS = 4
+#     NUM_DATA = 15
+#     NUM_HELPERS = 1
+
+#     for pid in range(NUM_PROCS):
+#         topo = make_process_topology(
+#             num_data=NUM_DATA,
+#             num_helper=NUM_HELPERS,
+#             extra_edges_per_qubit=30,
+#             seed=100 + pid,   # different but reproducible per process
+#         )
+#         proc = process(
+#             process_id=pid,
+#             num_data_qubits=NUM_DATA,
+#             num_helper_qubits=NUM_HELPERS,
+#             topology=topo,
+#         )
+#         process_list.append(proc)
+
+#     # Sanity check: total data qubits must fit into hardware
+#     total_data_qubits = sum(p.get_num_data_qubits() for p in process_list)
+#     print("Total data qubits:", total_data_qubits, "Hardware qubits:", N_qubits)
+
+#     # ----- run the heuristic search on Torino -----
+#     best_mapping = iteratively_find_the_best_mapping(
+#         process_list,
+#         n_qubits=N_qubits,
+#     )
+
+#     print("Best mapping found:", best_mapping)
+#     best_cost = calculate_mapping_cost(process_list, best_mapping)
+#     print("Best cost:", best_cost)
+
+#     # ----- visualize on Torino -----
+#     plot_process_schedule_on_torino(
+#         torino_coupling_map(),
+#         process_list,
+#         best_mapping,
+#         out_png="best_torino_mapping_5proc_20data.png",
+#     )
 
     # plot_process_schedule_on_10_qubit_hardware(
     #     simple_10_qubit_coupling_map(),

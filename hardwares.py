@@ -1,0 +1,63 @@
+from typing import Dict
+from matplotlib import pyplot as plt
+import numpy as np
+from qiskit.transpiler import CouplingMap
+
+
+def torino_coupling_map():
+    COUPLING = [
+        [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 13], [13, 14], # The first long row
+        [0,15], [15,19], [4,16], [16,23], [8,17], [17,27], [12,18], [18,31], # Short row 1
+        [19,20], [20,21], [21,22], [22,23], [23,24], [24,25], [25,26], [26,27], [27,28], [28,29], [29,30], [30,31], [31,32], [32,33], # The second long row
+        [21,34], [34,40], [25,35], [35,44], [29,36], [36,48], [33,37], [37,52], # Short row 2
+        [38,39], [39,40], [40,41], [41,42], [42,43], [43,44], [44,45], [45,46], [46,47], [47,48], [48,49], [49,50], [50,51], [51,52], # The third long row
+        [38,53], [53,57], [42,54], [54,61], [46,55], [55,65], [50,56], [56,69], # Short row 3
+        [57,58], [58,59], [59,60], [60,61], [61,62], [62,63], [63,64], [64,65], [65,66], [66,67], [67,68], [68,69], [69,70], [70,71], # The forth long row
+        [59,72], [72,78], [63,73], [73,82], [67,74], [74,86], [71,75], [75,90], # Short row 4
+        [76,77], [77,78], [78,79], [79,80], [80,81], [81,82], [82,83], [83,84], [84,85], [85,86], [86,87], [87,88], [88,89], [89,90], # The fifth long row
+        [76,91], [91,95], [80,92], [92,99], [84,93], [93,103], [88,94], [94,107], # Short row 5
+        [95,96], [96,97], [97,98], [98,99], [99,100], [100,101], [101,102], [102,103], [103,104], [104,105], [105,106], [106,107], [107,108], [108,109], # The sixth long row
+        [97,110], [110,116], [101,111], [111,120], [105,112], [112,124],[109,113], [113,128], # Short row 6
+        [114,115], [115,116], [116,117], [117,118], [118,119], [119,120], [120,121], [121,122], [122,123], [123,124], [124,125], [125,126], [126,127], [127,128], # The seventh long row
+        [114,129], [118, 130], [122,131], [126,132]  # Short row 7
+    ]
+    return COUPLING
+
+
+def simple_10_qubit_coupling_map():
+    COUPLING = [[0, 1], [1, 2], [2, 3], [3, 4], [0,5], [1,6], [2,7], [3,8], [4,9],[5,6], [6,7],[7,8],[8,9]]  # linear chain
+    return COUPLING
+
+def get_10_qubit_hardware_coords() -> list[tuple[float, float]]:
+    edge_length = 1
+    coords = [ ]
+    for i in range(10):
+        if i<5:
+            coords.append( (float(i*edge_length), 0.0) )
+        else:
+            coords.append( (float((i-5)*edge_length), -edge_length))
+    return coords
+
+
+def torino_qubit_coords() -> list[tuple[float, float]]:
+    coords = [(0.0, 0.0)] * 133
+
+    # Long rows: each has 16 nodes, at x=0..15
+    long_starts = [0, 19, 38, 57, 76, 95, 114]
+    for r, start in enumerate(long_starts):
+        y = -2.0 * r
+        for k in range(15):
+            coords[start + k] = (float(k), y)
+
+    # Short rows: each has 4 nodes, alternating column anchors
+    short_starts = [15, 34, 53, 72, 91, 110, 129]
+
+    anchors_odd  = [0, 4, 8, 12]  # short rows 1,3,5,7
+    anchors_even = [2, 6, 10, 14]   # short rows 2,4,6
+    for s, start in enumerate(short_starts):
+        y = -(2.0 * s + 1.0)
+        xs = anchors_odd if (s % 2 == 0) else anchors_even
+        for j, x in enumerate(xs):
+            coords[start + j] = (float(x), y)
+
+    return coords
