@@ -305,7 +305,7 @@ def propose_neighbor(mapping: Dict[int, tuple[int, int]],
 
 def iteratively_find_the_best_mapping(process_list: List[process],
                                       n_qubits: int,
-                                      n_restarts: int = 10,
+                                      n_restarts: int = 1,
                                       steps_per_restart: int = 2000
                                       ) -> Dict[int, tuple[int, int]]:
     """
@@ -960,7 +960,7 @@ class haloScheduler:
                 """
                 Case4: Helper qubit needed and not available. The process has to wait
                 """
-                process.set_status(ProcessStatus.WAIT_FOR_HELPER)
+                proc.set_status(ProcessStatus.WAIT_FOR_HELPER)
 
 
                 # Release helper qubits
@@ -1009,6 +1009,8 @@ class haloScheduler:
         start_time=time.time()
         self._start_time=start_time
         while not self._stop_event.is_set() or not len(self._process_queue)==0:
+
+
             # Step 1: Get the next batch of processes
             batchresult=self.get_next_batch()
             if batchresult is None:
@@ -1035,17 +1037,22 @@ class haloScheduler:
             # Step 4: Send the scheduled instructions to hardware
             result=self._jobmanager.execute_on_hardware(shots,total_measurements,measurement_to_process_map,scheduled_instructions)
 
+
             self._log.append(f"[HARDWARE RESULT] {result}")
             # Step 5: Update the process queue after one batch execution
             self.update_process_queue(shots,result)
+
+
+            #Clear the queue
+            for proc in self._process_queue:
+                if proc.finish_all_shots():
+                    self._process_queue.remove(proc)
 
 
             # Step 6: Reset for the next batch
             for proc in process_batch:
                 proc.reset_all_mapping()
 
-
-            time.sleep(1)  # small delay to prevent busy waiting
             print("[FINISH] BATCHFINISH.")
 
             self.show_queue(add_to_log=True)
@@ -1313,13 +1320,13 @@ if __name__ == "__main__":
 
     producer_thread = threading.Thread(
         target=random_arrival_generator,
-        args=(haloScheduler_instance, 0.2, 8.0),
+        args=(haloScheduler_instance, 0.3, 40.0),
         daemon=False
     )
     producer_thread.start()
 
 
-    simulation_time = 8  # seconds
+    simulation_time = 40  # seconds
     time.sleep(simulation_time)
 
 

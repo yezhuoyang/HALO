@@ -9,7 +9,9 @@ The is the halo scheduler.
 # How to run the experiment?
 
 
-
+```python
+py halo.py
+```
 
 
 # How to setup parameters?
