@@ -23,7 +23,7 @@ import logging
 logging.getLogger("qiskit_ibm_runtime").setLevel(logging.ERROR)
 
 
-benchmark_suit_file_root="C://Users//yezhu//Documents//HALO//benchmark//"
+benchmark_suit_file_root="benchmark//"
 benchmark_suit={
     0:"cat_state_prep_n4",
     1:"cat_state_verification_n4",
@@ -378,7 +378,7 @@ class jobManager:
         self._result_queue = queue.Queue()
         self._ibmkey = ibmkey
         self._use_simulator = use_simulator
-        self._virtual_measurement_size = 0
+        self._virtual_measurement_size = 1
 
 
 
@@ -966,7 +966,14 @@ class haloScheduler:
 
                 # Release helper qubits
 
-
+        if current_measurement_index==0:
+            for proc in process_batch:
+                print(f"[ERROR] Process {proc.get_process_id()} has instructions but no measurement scheduled.")
+            for proc in process_batch:
+                print("Instructions:")
+                for inst in final_scheduled_instructions:
+                    print(inst)
+            raise ValueError("No measurement scheduled in this batch, something is wrong.")
         return current_measurement_index, measurement_to_process_map, final_scheduled_instructions
 
 
@@ -998,12 +1005,15 @@ class haloScheduler:
         """
         start_time=time.time()
         self._start_time=start_time
-        while not self._stop_event.is_set() or not self._process_queue.empty():
+        while not self._stop_event.is_set() or not len(self._process_queue)==0:
             # Step 1: Get the next batch of processes
             batchresult=self.get_next_batch()
             if batchresult is None:
                 continue
             shots, process_batch = batchresult
+
+            if len(process_batch) == 0:
+                continue
 
             # Step 2: Allocate data qubit territory for all processes
             L=self.allocate_data_qubit(process_batch)
@@ -1022,6 +1032,12 @@ class haloScheduler:
 
             # Step 5: Update the process queue after one batch execution
             self.update_process_queue(shots,result)
+
+
+            # Step 6: Reset for the next batch
+            for proc in process_batch:
+                proc.reset_all_mapping()
+
 
             time.sleep(1)  # small delay to prevent busy waiting
             print("[FINISH] BATCHFINISH.")
