@@ -305,7 +305,7 @@ def propose_neighbor(mapping: Dict[int, tuple[int, int]],
 
 def iteratively_find_the_best_mapping(process_list: List[process],
                                       n_qubits: int,
-                                      n_restarts: int = 2,
+                                      n_restarts: int = 10,
                                       steps_per_restart: int = 2000
                                       ) -> Dict[int, tuple[int, int]]:
     """
@@ -639,8 +639,7 @@ class haloScheduler:
         self._process_queue.append(process)
         self._process_start_time[process.get_process_id()] = time.time()-self._start_time
         self._process_source_id[process.get_process_id()] = source_id
-        self._log.append(f"[ADD] Process {process.get_process_id()} added to the queue at time {self._process_start_time[process.get_process_id()] }.")
-
+        self._log.append(f"[ADD] Process {process.get_process_id()} added to the queue at time {self._process_start_time[process.get_process_id()] }, shots: {process.get_remaining_shots()}.")
 
 
     def get_next_batch(self)-> Optional[Tuple[int, List[process]]]:
@@ -658,7 +657,7 @@ class haloScheduler:
                 process_batch.append(proc)
                 remain_qubits-=proc.get_num_data_qubits()
         min_shots= min([proc.get_remaining_shots() for proc in process_batch])  
-
+        self._log.append(f"[BATCH] Process batch with {[proc.get_process_id() for proc in process_batch]} selected with min shots {min_shots}.")
         return min_shots,process_batch
     
 
@@ -978,7 +977,7 @@ class haloScheduler:
 
 
 
-    def show_queue(self):
+    def show_queue(self, add_to_log: bool = True):
         """
         Show the current process queue. 
 
@@ -988,9 +987,13 @@ class haloScheduler:
             [Process Queue] P1: DQ=3, HQ=2, Shots=100----P2: DQ=3, HQ=2, Shots=500
         """
         temp_list = []
+        tmp_str = "[PROCESS QUEUE] "
         for proc in self._process_queue:
             temp_list.append(proc)
-            print(f"P{proc.get_process_id()}: DQ={proc.get_num_data_qubits()}, HQ={proc.get_num_helper_qubits()}, Shots={proc._shots}", end="----")
+            tmp_str += f"P{proc.get_process_id()}: DQ={proc.get_num_data_qubits()}, HQ={proc.get_num_helper_qubits()}, Shots={proc._remaining_shots}----"
+
+        if add_to_log:
+            self._log.append(f"[QUEUE STATUS] {tmp_str}")
 
 
     def halo_scheduling(self):
@@ -1012,6 +1015,9 @@ class haloScheduler:
                 continue
             shots, process_batch = batchresult
 
+            if shots ==0:
+                break
+
             if len(process_batch) == 0:
                 continue
 
@@ -1029,7 +1035,7 @@ class haloScheduler:
             # Step 4: Send the scheduled instructions to hardware
             result=self._jobmanager.execute_on_hardware(shots,total_measurements,measurement_to_process_map,scheduled_instructions)
 
-
+            self._log.append(f"[HARDWARE RESULT] {result}")
             # Step 5: Update the process queue after one batch execution
             self.update_process_queue(shots,result)
 
@@ -1042,7 +1048,7 @@ class haloScheduler:
             time.sleep(1)  # small delay to prevent busy waiting
             print("[FINISH] BATCHFINISH.")
 
-            self.show_queue()
+            self.show_queue(add_to_log=True)
         end_time=time.time()
         self._total_running_time=end_time-start_time
 
@@ -1093,6 +1099,10 @@ class haloScheduler:
                 self._process_fidelity[proc.get_process_id()] = distribution_fidelity(ideal_result, proc.get_result_counts())
                 print(f"[PROCESS FIDELITY] Process {proc.get_process_id()} fidelity: {self._process_fidelity[proc.get_process_id()]}")
                 print(f"[PROCESS WAITING TIME] Process {proc.get_process_id()} waiting time: {self._process_waiting_time[proc.get_process_id()]} seconds")
+
+                self._log.append(f"[PROCESS FINISH] Process {proc.get_process_id()} finished all shots at time {self._process_end_time[proc.get_process_id()]}.")
+                self._log.append(f"[PROCESS FIDELITY] Process {proc.get_process_id()} fidelity: {self._process_fidelity[proc.get_process_id()]}")
+                self._log.append(f"[PROCESS WAITING TIME] Process {proc.get_process_id()} waiting time: {self._process_waiting_time[proc.get_process_id()]} seconds")
                 self._finished_process_count += 1
 
 
@@ -1200,7 +1210,7 @@ def random_arrival_generator(scheduler: haloScheduler,
         #Generate a random process from benchmark suit
         benchmark_id = random.randint(0, len(benchmark_suit) - 1)
         proc = generate_process_from_benchmark(benchmark_id, pid, shots)
-        print(f"[ARRIVAL] New process {benchmark_suit[benchmark_id]} arriving, pid: {pid}.")
+        print(f"[ARRIVAL] New process {benchmark_suit[benchmark_id]} arriving, pid: {pid}, shots: {shots}")
         scheduler.add_process(proc, source_id=benchmark_id)
         pid += 1
 
@@ -1249,6 +1259,9 @@ def test_scheduling():
 
     print("Start getting next batch...")
     shots, next_batch = scheduler.get_next_batch()
+
+
+    
     L = scheduler.allocate_data_qubit(next_batch)
 
 
@@ -1300,13 +1313,13 @@ if __name__ == "__main__":
 
     producer_thread = threading.Thread(
         target=random_arrival_generator,
-        args=(haloScheduler_instance, 0.1, 100.0),
+        args=(haloScheduler_instance, 0.2, 8.0),
         daemon=False
     )
     producer_thread.start()
 
 
-    simulation_time = 100.0  # seconds
+    simulation_time = 8  # seconds
     time.sleep(simulation_time)
 
 
