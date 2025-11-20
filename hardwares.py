@@ -28,6 +28,17 @@ def simple_10_qubit_coupling_map():
     COUPLING = [[0, 1], [1, 2], [2, 3], [3, 4], [0,5], [1,6], [2,7], [3,8], [4,9],[5,6], [6,7],[7,8],[8,9]]  # linear chain
     return COUPLING
 
+
+def simple_20_qubit_coupling_map():
+    COUPLING = [[0, 1], [1, 2], [2, 3], [3, 4], 
+                [0,5], [1,6], [2,7], [3,8], [4,9],
+                [5,6], [6,7],[7,8],[8,9],
+                [5,10], [6, 11], [7, 12], [8, 13], [9, 14],
+                [10,11],[11,12], [12,13], [13,14], 
+                [10,15], [11,16], [12,17], [13,18], [14,19],
+                [15,16], [16,17], [17,18], [18,19]]  
+    return COUPLING
+
 def get_10_qubit_hardware_coords() -> list[tuple[float, float]]:
     edge_length = 1
     coords = [ ]
@@ -88,11 +99,6 @@ def construct_fake_ibm_torino():
 
     BASIS = ["cz","id","rx","rz","rzz","sx","x"]  # add more *only* if truly native
 
-    SINGLE_QUBIT_GATE_LENGTH_NS = 32       # example: 0.222 ns timestep
-    SINGLE_QUBIT_GATE_LENGTH_NS = 88       # example: 0.222 ns timestep
-    READOUT_LENGTH_NS = 2584     # example measurement timestep
-
-
     backend = GenericBackendV2(
         num_qubits=NUM_QUBITS,
         basis_gates=BASIS,         # optional
@@ -103,3 +109,42 @@ def construct_fake_ibm_torino():
     )
 
     return backend
+
+
+
+def construct_20_qubit_hardware():
+    NUM_QUBITS = 20
+    COUPLING = [[0, 1], [1, 2], [2, 3], [3, 4], 
+                [0,5], [1,6], [2,7], [3,8], [4,9],
+                [5,6], [6,7],[7,8],[8,9],
+                [5,10], [6, 11], [7, 12], [8, 13], [9, 14],
+                [10,11],[11,12], [12,13], [13,14], 
+                [10,15], [11,16], [12,17], [13,18], [14,19],
+                [15,16], [16,17], [17,18], [18,19]]  
+    BASIS = ["cx", "id", "rz", "sx", "x"]  # add more *only* if truly native
+
+    backend = GenericBackendV2(
+        num_qubits=NUM_QUBITS,
+        basis_gates=BASIS,         # optional
+        coupling_map=COUPLING,     # strongly recommended
+        control_flow=True,        # set True if you want dynamic circuits            
+        seed=1234,                 # reproducible auto-generated props
+        noise_info=True            # attach plausible noise/durations
+    )
+
+    return backend    
+
+
+def get_20_qubit_hardware_coords() -> list[tuple[float, float]]:
+    edge_length = 1
+    coords = [ ]
+    for i in range(20):
+        if i<5:
+            coords.append( (float(i*edge_length), 0.0) )
+        elif i<10:
+            coords.append( (float((i-5)*edge_length), -edge_length))
+        elif i<15:
+            coords.append( (float((i-10)*edge_length), -2*edge_length))
+        else:
+            coords.append( (float((i-15)*edge_length), -3*edge_length))
+    return coords

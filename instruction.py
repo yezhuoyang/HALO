@@ -480,6 +480,8 @@ def construct_qiskit_circuit(num_data_qubit: int, num_syndrome_qubit: int, num_c
                 qiskit_circuit.cp(params[0], qiskitaddress[0], qiskitaddress[1])
             case Instype.RESET:
                 qiskit_circuit.reset(qiskitaddress[0])
+            case Instype.RELEASE:
+                qiskit_circuit.reset(qiskitaddress[0])
             case Instype.MEASURE:
                 classical_address=inst.get_classical_address()
                 qiskit_circuit.measure(qiskitaddress[0], classical_address)

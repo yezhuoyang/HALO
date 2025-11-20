@@ -1,6 +1,6 @@
 import pickle
 import json
-from hardwares import torino_coupling_map, construct_fake_ibm_torino
+from hardwares import torino_coupling_map, construct_fake_ibm_torino, simple_20_qubit_coupling_map, construct_20_qubit_hardware
 from instruction import instruction, Instype, parse_program_from_file, construct_qiskit_circuit
 from process import all_pairs_distances, plot_process_schedule_on_torino, process, ProcessStatus
 from typing import Dict, List, Optional, Tuple
@@ -83,14 +83,28 @@ def load_ideal_count_output(benchmark_id: int) -> Dict[str, int]:
 
 
 
-
+"""
+Hyper parameters for mapping cost calculation:
+alpha: weight for intra-process cost
+beta: weight for inter-process cost
+gamma: weight for helper qubit cost
+delta: weight for compact cost
+"""
 alpha=0.3
 beta=100
 gamma=300
 delta=200
-N_qubits=133
-hardware_distance_pair=all_pairs_distances(N_qubits, torino_coupling_map())
+
+# N_qubits=133
+# hardware_distance_pair=all_pairs_distances(N_qubits, torino_coupling_map())
 fake_torino_backend=construct_fake_ibm_torino()
+
+
+N_qubits=20
+hardware_distance_pair=all_pairs_distances(N_qubits, simple_20_qubit_coupling_map())
+fake_backend=construct_20_qubit_hardware()
+
+
 data_hardware_ratio=0.8
 #The maximum distance between a data qubit and a helper qubit
 max_data_helper_distance=10
@@ -106,7 +120,7 @@ def calculate_mapping_cost(process_list: List[process],mapping: Dict[int, tuple[
         
         Output:
             A float representing the total mapping cost, calculated as:
-            cost = alpha * intro_cost + beta * inter_cost + gamma * helper_cost
+            cost = alpha * intro_cost - beta * inter_cost + gamma * helper_cost + delta * compact_cost
     """
 
     # Initialize the helper qubit Zone
@@ -550,7 +564,7 @@ class haloScheduler:
 
     It should maintain a process Queue from the user
     """
-    def __init__(self):
+    def __init__(self, use_simulator: bool = False):
         self._process_queue = []
 
 
@@ -571,7 +585,7 @@ class haloScheduler:
         self._process_fidelity={}
         self._total_running_time=0.0
         self._finished_process_count=0
-        self._jobmanager=jobManager()
+        self._jobmanager=jobManager(use_simulator=use_simulator)
 
 
 
@@ -1241,6 +1255,8 @@ def generate_process_from_benchmark(benchmark_id: int, pid: int, shots: int) -> 
 
 
 
+
+
 def test_scheduling():
     """
     A simple test function for the haloScheduler
@@ -1295,9 +1311,6 @@ def test_scheduling():
 
 
 
-
-
-
 # if __name__ == "__main__":
 #     test_scheduling()
 
@@ -1313,7 +1326,7 @@ if __name__ == "__main__":
     random.seed(42)
 
 
-    haloScheduler_instance=haloScheduler()
+    haloScheduler_instance=haloScheduler(use_simulator=True)
     haloScheduler_instance.start()
 
 
