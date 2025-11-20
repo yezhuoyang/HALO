@@ -355,8 +355,16 @@ def iteratively_find_the_best_mapping(process_list: List[process],
 
 
 
-APIKEY ="zkIgM0xZIJfR0CgMMvD7A6N-76pgelZ10cAp9gt1fywy"
+def load_ibm_api_key_from_file(filename: str) -> str:
+    """
+    Load the IBMQ API key from a file
+    """
+    with open(filename, "r") as f:
+        api_key = f.read().strip()
+    return api_key
 
+
+APIKEY = load_ibm_api_key_from_file("apikey")
 
 class jobManager:
     """
