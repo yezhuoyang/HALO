@@ -2,7 +2,7 @@ from typing import Dict
 from matplotlib import pyplot as plt
 import numpy as np
 from qiskit.transpiler import CouplingMap
-
+from qiskit.providers.fake_provider import GenericBackendV2  # lives here
 
 def torino_coupling_map():
     COUPLING = [
@@ -61,3 +61,45 @@ def torino_qubit_coords() -> list[tuple[float, float]]:
             coords[start + j] = (float(x), y)
 
     return coords
+
+
+
+def construct_fake_ibm_torino():
+    NUM_QUBITS = 133
+
+
+    # Directed edges (bidirectional 0<->1 and 1->2)
+    COUPLING = [
+        [0, 1], [1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 8], [8, 9], [9, 10], [10, 11], [11, 12], [12, 13], [13, 14], # The first long row
+        [0,15], [15,19], [4,16], [16,23], [8,17], [17,27], [12,18], [18,31], # Short row 1
+        [19,20], [20,21], [21,22], [22,23], [23,24], [24,25], [25,26], [26,27], [27,28], [28,29], [29,30], [30,31], [31,32], [32,33], # The second long row
+        [21,34], [34,40], [25,35], [35,44], [29,36], [36,48], [33,37], [37,52], # Short row 2
+        [38,39], [39,40], [40,41], [41,42], [42,43], [43,44], [44,45], [45,46], [46,47], [47,48], [48,49], [49,50], [50,51], [51,52], # The third long row
+        [38,53], [53,57], [42,54], [54,61], [46,55], [55,65], [50,56], [56,69], # Short row 3
+        [57,58], [58,59], [59,60], [60,61], [61,62], [62,63], [63,64], [64,65], [65,66], [66,67], [67,68], [68,69], [69,70], [70,71], # The forth long row
+        [59,72], [72,78], [63,73], [73,82], [67,74], [74,86], [71,75], [75,90], # Short row 4
+        [76,77], [77,78], [78,79], [79,80], [80,81], [81,82], [82,83], [83,84], [84,85], [85,86], [86,87], [87,88], [88,89], [89,90], # The fifth long row
+        [76,91], [91,95], [80,92], [92,99], [84,93], [93,103], [88,94], [94,107], # Short row 5
+        [95,96], [96,97], [97,98], [98,99], [99,100], [100,101], [101,102], [102,103], [103,104], [104,105], [105,106], [106,107], [107,108], [108,109], # The sixth long row
+        [97,110], [110,116], [101,111], [111,120], [105,112], [112,124],[109,113], [113,128], # Short row 6
+        [114,115], [115,116], [116,117], [117,118], [118,119], [119,120], [120,121], [121,122], [122,123], [123,124], [124,125], [125,126], [126,127], [127,128], # The seventh long row
+        [114,129], [118, 130], [122,131], [126,132]  # Short row 7
+    ]
+
+    BASIS = ["cz","id","rx","rz","rzz","sx","x"]  # add more *only* if truly native
+
+    SINGLE_QUBIT_GATE_LENGTH_NS = 32       # example: 0.222 ns timestep
+    SINGLE_QUBIT_GATE_LENGTH_NS = 88       # example: 0.222 ns timestep
+    READOUT_LENGTH_NS = 2584     # example measurement timestep
+
+
+    backend = GenericBackendV2(
+        num_qubits=NUM_QUBITS,
+        basis_gates=BASIS,         # optional
+        coupling_map=COUPLING,     # strongly recommended
+        control_flow=True,        # set True if you want dynamic circuits            
+        seed=1234,                 # reproducible auto-generated props
+        noise_info=True            # attach plausible noise/durations
+    )
+
+    return backend

@@ -139,12 +139,30 @@ class process:
         self._num_helper_qubits = num_helper_qubits
         self._topology = analyze_topo_from_instructions(inst_list)
         self._inst_list = inst_list
+        for inst in self._inst_list:
+            inst.set_processID(process_id)
         self._data_qubit_mapping={}
         self._shots = shots
         self._remaining_shots = shots
         self._status = ProcessStatus.WAIT_TO_START
         self._result_counts = {}
         self._pointer = 0  # points to the next instruction to be scheduled
+
+
+    def finish_all_shots(self) -> bool:
+        return self._remaining_shots <= 0
+
+
+    def reset_all_mapping(self):
+        """
+        Refresh all the mapping because one process might
+        be re-scheduled multiple times.
+        """
+        self._data_qubit_mapping={}
+        for inst in self._inst_list:
+            inst.reset_mapping()
+        self._pointer = 0
+        self._status = ProcessStatus.WAIT_TO_START
 
 
     def set_status(self, status: ProcessStatus):
@@ -210,7 +228,10 @@ class process:
                     inst.set_scheduled_mapped_address(qa)
 
 
-    def update_result(self, shots, counts: Dict[str, int]):
+    def update_result(self, shots: int, counts: Dict[str, int]):
+        """
+        Update the result counts after executing shots.
+        """
         self._remaining_shots -= shots
         for key, value in counts.items():
             if key in self._result_counts:
@@ -431,7 +452,7 @@ def make_process_topology(num_data: int = 20,
 
 
 if __name__ == "__main__":
-    file_path = "C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\cat_state_prep_n4"
+    file_path = "C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\repetition_code_distance3_n3"
     inst_list, data_n, syn_n = parse_program_from_file(file_path)
 
 

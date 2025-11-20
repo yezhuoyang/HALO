@@ -139,6 +139,28 @@ class instruction:
             if addr.startswith('s'):
                 self._helper_qubit_count+=1
 
+        self._processID=-1
+
+
+    def set_processID(self, processID: int):
+        """
+        Set the process ID associated with the instruction.
+        
+        Args:
+            processID (int): The process ID to set.
+        """
+        self._processID=processID
+
+
+    def get_processID(self) -> int:
+        """
+        Get the process ID associated with the instruction.
+        
+        Returns:
+            int: The process ID for the instruction.
+        """
+        return self._processID
+
 
 
     def get_reset_address(self) -> int:
@@ -317,7 +339,7 @@ class instruction:
 
 
     def __str__(self) -> str:
-        outputstr=""
+        outputstr="P("+str(self._processID)+"): "
         match self._type:
             case Instype.H:
                 outputstr+="H"
@@ -360,7 +382,8 @@ class instruction:
             case Instype.CP:
                 outputstr+="CP("+str(self._params[0])+"*pi)"
             case Instype.RESET:
-                outputstr+="RESET"
+                outputstr+="RESET"+" qubit("+str(self._reset_address)+")"
+                return outputstr
             case Instype.MEASURE:
                 outputstr+="c" + str(self._classical_address) + "=MEASURE"
             case Instype.RELEASE:
@@ -736,7 +759,7 @@ benchmark_suit={
 
 if __name__ == "__main__":
 
-   file_path = "C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\cat_state_verification_n4"
+   file_path = "C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\syndrome_extraction_surface_n4"
 
 
 
@@ -756,7 +779,7 @@ if __name__ == "__main__":
    result = sim.run(tqc, shots=shots).result()
    counts = result.get_counts(tqc)
 
-   with open("C://Users//yezhu//Documents//HALO//benchmark//result2000shots//cat_state_verification_n4_counts.pkl", "wb") as f:
+   with open("C://Users//yezhu//Documents//HALO//benchmark//result2000shots//syndrome_extraction_surface_n4_counts.pkl", "wb") as f:
      pickle.dump(counts, f)
 
 
