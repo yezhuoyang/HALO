@@ -1,6 +1,7 @@
 #Optimize the data qubit mapping of a given hardware
 #First, calculate the cost of a mapping
 from collections import deque
+import copy
 from typing import Dict, List
 import numpy as np
 from qiskit.transpiler import CouplingMap
@@ -35,6 +36,34 @@ class circuit_topology:
     
     def get_data_helper_weight(self, data_qubit: int) -> int:
         return self._data_helper_weight[data_qubit]
+
+
+
+    def best_helper_qubit_location(self, hardware_distance: List[List[int]], data_qubit_mapping: Dict[int, int], available_helper_qubits: List[int], helper_qubit_index: int) -> int:
+        """
+        Given the data qubit mapping, get the best physical location for the helper qubit with index helper_qubit_index.
+        Inputs:
+        - hardware_distance: distance matrix of the hardware
+        - data_qubit_mapping: mapping from data qubit index to physical qubit index
+        - available_helper_qubits: list of available physical qubits for helper qubits
+        - helper_qubit_index: index of the helper qubit in the process
+        Returns:
+        - best_location: physical qubit index for the helper qubit
+        """
+        best_location = -1
+        best_cost = float('inf')
+        all_connected_data_qubits = [dq for dq, hq in self._data_helper_interaction if hq == helper_qubit_index]
+        for hq in available_helper_qubits:
+            cost = 0.0
+            for dq in all_connected_data_qubits:
+                phys_dq = data_qubit_mapping[dq]
+                dist = hardware_distance[phys_dq][hq]
+                cost += dist
+            if cost < best_cost:
+                best_cost = cost
+                best_location = hq
+        return best_location
+
 
 
     def __repr__(self):
@@ -95,9 +124,8 @@ def analyze_topo_from_instructions(inst_list: List[instruction]) -> circuit_topo
 class ProcessStatus(Enum):
     WAIT_TO_START = 0
     RUNNING = 1
-    WAIT_FOR_ANSILLA = 2
-    WAIT_FOR_T_GATE = 3
-    FINISHED = 4
+    WAIT_FOR_HELPER = 2
+    FINISHED = 3
 
 
 
@@ -105,12 +133,90 @@ class ProcessStatus(Enum):
 class process:
 
 
-    def __init__(self, process_id: int, num_data_qubits: int, num_helper_qubits: int, inst_list=List[instruction]):
+    def __init__(self, process_id: int, num_data_qubits: int, num_helper_qubits: int, shots: int,inst_list=List[instruction]):
         self._process_id = process_id
         self._num_data_qubits = num_data_qubits
         self._num_helper_qubits = num_helper_qubits
         self._topology = analyze_topo_from_instructions(inst_list)
         self._inst_list = inst_list
+        self._data_qubit_mapping={}
+        self._shots = shots
+        self._remaining_shots = shots
+        self._status = ProcessStatus.WAIT_TO_START
+        self._result_counts = {}
+        self._pointer = 0  # points to the next instruction to be scheduled
+
+
+    def set_status(self, status: ProcessStatus):
+        self._status = status
+
+
+    def is_running(self) -> bool:
+        return self._status == ProcessStatus.RUNNING
+    
+
+    def is_finished(self) -> bool:
+        return self._status == ProcessStatus.FINISHED
+    
+
+    def get_remaining_shots(self) -> int:
+        return self._remaining_shots
+
+
+    def get_result_counts(self) -> Dict[str, int]:
+        return self._result_counts
+    
+
+    def is_waiting_for_helper(self) -> bool:
+        return self._status == ProcessStatus.WAIT_FOR_HELPER
+
+
+
+    def get_next_instruction(self) -> instruction | None:
+        """
+        Get the next instruction to be scheduled, or None if all instructions are scheduled.
+        """
+        if self._pointer < len(self._inst_list):
+            inst = self._inst_list[self._pointer]
+            return inst
+        else:
+            self._status = ProcessStatus.FINISHED
+            return None
+
+
+
+    def execute_next_instruction(self):
+        """
+        Execute the next instruction by advance the pointer.
+        """
+        if self._pointer < len(self._inst_list):
+            self._pointer += 1
+        if self._pointer >= len(self._inst_list):
+            self._status = ProcessStatus.FINISHED
+
+
+
+    def update_data_qubit_mapping(self, L: Dict[int, tuple[int, int]]):
+        """
+        Update the data qubit mapping for all instruction, given the total data qubit layout mapping L.
+        """
+        for phys_qubit, (pid, data_qubit) in L.items():
+            if pid == self._process_id:
+                self._data_qubit_mapping[data_qubit] = phys_qubit
+        for inst in self._inst_list:
+            qubit_addresses = inst.get_qubitaddress()
+            for qa in qubit_addresses:
+                if qa.startswith('q'):
+                    inst.set_scheduled_mapped_address(qa)
+
+
+    def update_result(self, shots, counts: Dict[str, int]):
+        self._remaining_shots -= shots
+        for key, value in counts.items():
+            if key in self._result_counts:
+                self._result_counts[key] += value
+            else:
+                self._result_counts[key] = value
 
 
     def get_process_id(self) -> int:
@@ -200,9 +306,11 @@ def plot_process_schedule_on_10_qubit_hardware(coupling_edges: list[list[int]],
 
     # --- give each process a unique color ---
     colors = plt.cm.tab10(np.linspace(0, 1, len(process_list)))  # up to 10 distinct
+    color_map = {p.get_process_id(): colors[i] for i, p in enumerate(process_list)}
+
     for phys, (pid, data_qubit) in mapping.items():
         # find the process
-        color = colors[pid]
+        color = color_map[pid]
         x, y = coords[phys]
         ax.scatter([x], [y], s=780, facecolors="none", edgecolors=color,
                    linewidths=2.6, zorder=5)
@@ -258,10 +366,12 @@ def plot_process_schedule_on_torino(coupling_edges: list[list[int]],
 
 
     # --- give each process a unique color ---
+    # --- give each process a unique color ---
     colors = plt.cm.tab10(np.linspace(0, 1, len(process_list)))  # up to 10 distinct
+    color_map = {p.get_process_id(): colors[i] for i, p in enumerate(process_list)}
     for phys, (pid, data_qubit) in mapping.items():
         # find the process
-        color = colors[pid]
+        color = color_map[pid]
         x, y = coords[phys]
         ax.scatter([x], [y], s=780, facecolors="none", edgecolors=color,
                    linewidths=2.6, zorder=5)

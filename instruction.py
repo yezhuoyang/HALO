@@ -1,7 +1,10 @@
 from enum import Enum
 from typing import List, Tuple, Optional
 import qiskit.qasm2
-from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, transpile
+from qiskit_aer import AerSimulator  # <- use AerSimulator (Qiskit 2.x)
+import pickle
+
 
 """
 instruction.py
@@ -118,7 +121,7 @@ class instruction:
     For data qubit, the convention for data qubit k is qk,
     for helper qubit, the convention of helper qubit k is sk
     """
-    def __init__(self, type:Instype, qubitaddress:List[str],classical_address: int=None, params: List[float]=None) -> None:
+    def __init__(self, type:Instype, qubitaddress:List[str],classical_address: int=None, reset_address: int=None, params: List[float]=None) -> None:
         self._type=type
         self._qubitaddress=qubitaddress
         self._scheduled_mapped_address={} # This is the physical address after scheduling
@@ -127,6 +130,80 @@ class instruction:
             if classical_address is None:
                 raise ValueError("Classical address must be provided for MEASURE instruction.")
             self._classical_address=classical_address
+        if self._type==Instype.RESET:
+            if reset_address is None:
+                raise ValueError("Reset address must be provided for RESET instruction.")
+            self._reset_address=reset_address
+        self._helper_qubit_count=0
+        for addr in qubitaddress:
+            if addr.startswith('s'):
+                self._helper_qubit_count+=1
+
+
+
+    def get_reset_address(self) -> int:
+        """
+        Get the reset address associated with the instruction.
+        
+        Returns:
+            int: The reset address for the instruction.
+        """
+        if self._type != Instype.RESET:
+            raise ValueError("Reset address is only applicable for RESET instructions.")
+        return self._reset_address
+
+
+
+    def get_helper_qubit_count(self) -> int:
+        """
+        Get the number of helper qubits involved in the instruction.
+        
+        Returns:
+            int: The number of helper qubits.
+        """
+        return self._helper_qubit_count
+
+
+
+    def get_all_helper_qubit_addresses(self) -> List[str]:
+        """
+        Get the addresses of all helper qubits involved in the instruction.
+        
+        Returns:
+            List[str]: A list of helper qubit addresses.
+        """
+        helper_qubit_addresses = []
+        for addr in self._qubitaddress:
+            if addr.startswith('s'):
+                helper_qubit_addresses.append(addr)
+        return helper_qubit_addresses
+
+
+
+    def get_all_data_qubit_addresses(self) -> List[str]:
+        """
+        Get the addresses of all data qubits involved in the instruction.
+        
+        Returns:
+            List[str]: A list of data qubit addresses.
+        """
+        data_qubit_addresses = []
+        for addr in self._qubitaddress:
+            if addr.startswith('q'):
+                data_qubit_addresses.append(addr)
+        return data_qubit_addresses
+
+
+
+    def is_release_helper_qubit(self) -> bool:
+        """
+        Check if the instruction is a release operation.
+        
+        Returns:
+            bool: True if the instruction is a release, False otherwise.
+        """
+        return self._type == Instype.RELEASE
+
 
 
     def is_system_call(self) -> bool:
@@ -239,7 +316,7 @@ class instruction:
         return self._qubitaddress
 
 
-    def __str__(self):
+    def __str__(self) -> str:
         outputstr=""
         match self._type:
             case Instype.H:
@@ -288,7 +365,14 @@ class instruction:
                 outputstr+="c" + str(self._classical_address) + "=MEASURE"
             case Instype.RELEASE:
                 outputstr+="RELEASE"
-        outputstr+=" qubit(" + ", ".join(map(str, self._qubitaddress)) + ")"
+        outputstr+=" qubit("
+        for i, addr in  enumerate(self._qubitaddress):
+            outputstr+=addr
+            if addr in self._scheduled_mapped_address:
+                outputstr+="->"+str(self._scheduled_mapped_address[addr])
+            if i!=len(self._qubitaddress)-1:
+                outputstr+=", "
+        outputstr+=")"
         return outputstr
 
     def __repr__(self):
@@ -414,9 +498,10 @@ def _grab_params(text_after_gate: str) -> Tuple[List[float], str]:
     return params, remainder
 
 
-def parse_program_from_file(file_path: str) -> Tuple[List[instruction], int, int]:
+def parse_program_from_file(file_path: str) -> Tuple[List[instruction], int, int, int]:
     """
     Parse the custom process program DSL into a `process` object.
+    Return (inst_list, data_n, syn_n,measure_n).
 
     Expects header lines:
         q = alloc_data(N)
@@ -442,7 +527,7 @@ def parse_program_from_file(file_path: str) -> Tuple[List[instruction], int, int
     # ---- Pass 1: read header (alloc & shots) ----
     data_n = 0
     syn_n = 0
-    shots = 1000  # default if not provided
+    measure_n = 0
 
     alloc_data_re = re.compile(r"^q\s*=\s*alloc_data\(\s*(\d+)\s*\)\s*$", re.IGNORECASE)
     alloc_syn_re  = re.compile(r"^s\s*=\s*alloc_helper\(\s*(\d+)\s*\)\s*$", re.IGNORECASE)
@@ -531,6 +616,7 @@ def parse_program_from_file(file_path: str) -> Tuple[List[instruction], int, int
         # Measurement: "c0 = MEASURE q2"
         m = measure_re.match(ln)
         if m:
+            measure_n += 1
             cidx = int(m.group(1))
             qtok = m.group(2)
             inst_list.append(instruction(Instype.MEASURE, [qtok], classical_address=cidx))
@@ -633,23 +719,46 @@ def parse_program_from_file(file_path: str) -> Tuple[List[instruction], int, int
         raise ValueError(f"Unsupported or malformed instruction line: '{ln}'")
 
 
-    return inst_list, data_n, syn_n
+    return inst_list, data_n, syn_n, measure_n
     
 
 
-
+benchmark_suit={
+    0:"cat_state_prep_n4",
+    1:"cat_state_verification_n4",
+    2:"repetition_code_distance3_n3",
+    3:"shor_parity_measurement_n4",
+    4:"shor_stabilizer_XZZX_n3",
+    5:"shor_stabilizer_ZZZZ_n4",
+    6:"syndrome_extraction_surface_n3"
+}
 
 
 if __name__ == "__main__":
 
-   file_path = "C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\cat_state_prep_n4"
+   file_path = "C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\cat_state_verification_n4"
 
 
 
 
-   inst_list, data_n, syn_n = parse_program_from_file(file_path)
+   inst_list, data_n, syn_n, measure_n = parse_program_from_file(file_path)
 
-   for inst in inst_list:
-    print(inst)
 
+   qiskit_circuit = construct_qiskit_circuit(data_n, syn_n, measure_n, inst_list)
+
+
+   shots = 2000
+
+   sim = AerSimulator()
+   tqc = transpile(qiskit_circuit, sim)
+
+   # Run with 1000 shots
+   result = sim.run(tqc, shots=shots).result()
+   counts = result.get_counts(tqc)
+
+   with open("C://Users//yezhu//Documents//HALO//benchmark//result2000shots//cat_state_verification_n4_counts.pkl", "wb") as f:
+     pickle.dump(counts, f)
+
+
+   #print(simulate_result)
    #parse_qasm_instruction(0,qasm_code)
