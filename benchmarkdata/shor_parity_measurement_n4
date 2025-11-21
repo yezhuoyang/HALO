@@ -1,0 +1,29 @@
+q = alloc_data(8)
+set_shot(1000)
+
+H q4
+CNOT q0, q4
+CNOT q1, q4
+H q4
+c0 = MEASURE q4
+
+H q5
+CNOT q2, q5
+CNOT q3, q5
+H q5
+c1 = MEASURE q5
+
+H q6
+CNOT q0, q6
+CNOT q2, q6
+H q6
+c2 = MEASURE q6
+
+H q7
+CNOT q1, q7
+CNOT q3, q7
+H q7
+c3 = MEASURE q7
+
+
+deallocate_data(q)

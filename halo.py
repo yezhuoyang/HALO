@@ -23,6 +23,8 @@ import logging
 logging.getLogger("qiskit_ibm_runtime").setLevel(logging.ERROR)
 
 
+benchmark_suit_file_root_no_helper="benchmarkdata//"
+
 benchmark_suit_file_root="benchmark//"
 benchmark_suit={
     0:"cat_state_prep_n4",
@@ -204,8 +206,6 @@ def calculate_mapping_cost(process_list: List[process],mapping: Dict[int, tuple[
 
 
 
-
-
 def random_initial_mapping(process_list: List[process],
                            n_qubits: int) -> Dict[int, tuple[int, int]]:
     """
@@ -317,9 +317,9 @@ def propose_neighbor(mapping: Dict[int, tuple[int, int]],
 
 
 
-def iteratively_find_the_best_mapping(process_list: List[process],
+def iteratively_find_the_best_mapping_for_data(process_list: List[process],
                                       n_qubits: int,
-                                      n_restarts: int = 1,
+                                      n_restarts: int = 100,
                                       steps_per_restart: int = 2000
                                       ) -> Dict[int, tuple[int, int]]:
     """
@@ -366,6 +366,20 @@ def iteratively_find_the_best_mapping(process_list: List[process],
 
     print("Final best cost:", global_best_cost)
     return global_best_mapping
+
+
+
+
+def iteratively_find_the_best_mapping_for_all(process_list: List[process],
+                                      n_qubits: int,
+                                      n_restarts: int = 1,
+                                      steps_per_restart: int = 2000
+                                      ) -> Dict[int, tuple[int, int]]:
+    """
+    Find the best mapping for all qubits, including the helper qubits.
+    Thus is used for the bechmark without helper qubit sharing, or without parallel execution.
+    """
+    pass
 
 
 
@@ -656,6 +670,25 @@ class haloScheduler:
         self._log.append(f"[ADD] Process {process.get_process_id()} added to the queue at time {self._process_start_time[process.get_process_id()] }, shots: {process.get_remaining_shots()}.")
 
 
+
+    def get_next_batch_baseline(self)-> Optional[Tuple[int, List[process]]]:
+        """
+        Get the next process batch for baseline scheduling.
+        Just return the next process in the queue.
+        Return: List[process]
+        Just need to make sure the total data qubits in the batch is less than N_qubits
+        """
+        if len(self._process_queue) == 0:
+            return None
+        process = self._process_queue[0]
+        if process.get_num_data_qubits() > int(N_qubits * data_hardware_ratio):
+            assert False, f"Process {process.get_process_id()} requires {process.get_num_data_qubits()} data qubits, which exceeds the maximum allowed {int(N_qubits * data_hardware_ratio)}."
+        return process
+
+
+
+
+
     def get_next_batch(self)-> Optional[Tuple[int, List[process]]]:
         """
         Get the next process batch.
@@ -682,10 +715,17 @@ class haloScheduler:
 
         Return a Dict[int, tuple[int, int]] represent the data qubit mapping
         """
-        best_mapping=iteratively_find_the_best_mapping(process_batch,N_qubits)
+        best_mapping=iteratively_find_the_best_mapping_for_data(process_batch,N_qubits)
+        return best_mapping
+    
 
+    def allocate_all_qubits(self, process_batch: List[process]) -> Dict[int, tuple[int, int]]:
+        """
+        Allocate all qubits (data + helper) for all processes in the batch
 
-
+        Return a Dict[int, tuple[int, int]] represent the data qubit mapping
+        """
+        best_mapping=iteratively_find_the_best_mapping_for_all(process_batch,N_qubits)
         return best_mapping
 
 
@@ -715,6 +755,7 @@ class haloScheduler:
     def scheduling_without_sharing(self, L: Dict[int, tuple[int, int]], process_batch: List[process])-> Tuple[Dict[int, int], List[instruction]]:
         """
         Not sharing helper qubits across processes
+        Here L stands for the mapping of all qubits, including helper qubits.
         """
         pass
 
@@ -1209,10 +1250,10 @@ def construct_qiskit_circuit_for_hardware_instruction(num_measurements:int, inst
 
 
 
-
 def random_arrival_generator(scheduler: haloScheduler,
                              arrival_rate: float = 0.1,
-                             max_time: float = 100.0):
+                             max_time: float = 100.0,
+                             share_qubit: bool = True):
     """
     Producer thread: generate processes according to a Poisson process
     (exponential inter-arrival times with mean 1/arrival_rate).
@@ -1230,7 +1271,7 @@ def random_arrival_generator(scheduler: haloScheduler,
 
         #Generate a random process from benchmark suit
         benchmark_id = random.randint(0, len(benchmark_suit) - 1)
-        proc = generate_process_from_benchmark(benchmark_id, pid, shots)
+        proc = generate_process_from_benchmark(benchmark_id, pid, shots, share_qubit=share_qubit)
         print(f"[ARRIVAL] New process {benchmark_suit[benchmark_id]} arriving, pid: {pid}, shots: {shots}")
         scheduler.add_process(proc, source_id=benchmark_id)
         pid += 1
@@ -1240,14 +1281,17 @@ def random_arrival_generator(scheduler: haloScheduler,
 
 
 
-def generate_process_from_benchmark(benchmark_id: int, pid: int, shots: int) -> process:
+def generate_process_from_benchmark(benchmark_id: int, pid: int, shots: int, share_qubit=True) -> process:
     """
     Generate a process from the benchmark suit, given the pid and shots
     1. Load the benchmark data from the file
     2. Create a process instance
     3. Return the process instance
     """
-    file_path = f"{benchmark_suit_file_root}{benchmark_suit[benchmark_id]}"
+    if not share_qubit:
+        file_path = f"{benchmark_suit_file_root_no_helper}{benchmark_suit[benchmark_id]}"
+    else:
+        file_path = f"{benchmark_suit_file_root}{benchmark_suit[benchmark_id]}"
     # Load the benchmark data from the file
     (inst_list, data_n, syn_n, measure_n)=parse_program_from_file(file_path)
     proc = process(pid, data_n, syn_n, shots, inst_list)
@@ -1333,7 +1377,7 @@ if __name__ == "__main__":
 
     producer_thread = threading.Thread(
         target=random_arrival_generator,
-        args=(haloScheduler_instance, 0.3, 40.0),
+        args=(haloScheduler_instance, 0.3, 40.0,True),
         daemon=False
     )
     producer_thread.start()
@@ -1351,5 +1395,5 @@ if __name__ == "__main__":
     print("Simulation finished.")
 
 
-    haloScheduler_instance.store_log("halo_scheduler_log.txt")
+    haloScheduler_instance.store_log("halo_scheduler_log_not_share.txt")
 
