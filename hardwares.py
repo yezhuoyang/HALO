@@ -135,6 +135,73 @@ def construct_20_qubit_hardware():
     return backend    
 
 
+def construct_30_qubit_hardware():
+    NUM_QUBITS = 30
+    BASIS = ["cx", "id", "rz", "sx", "x"]  # add more *only* if truly native
+
+    # We'll arrange the qubits in a 5x6 grid:
+    # row 0:  0  1  2  3  4  5
+    # row 1:  6  7  8  9 10 11
+    # row 2: 12 13 14 15 16 17
+    # row 3: 18 19 20 21 22 23
+    # row 4: 24 25 26 27 28 29
+    #
+    # Couplings: all horizontal neighbors and all vertical neighbors.
+    COUPLING = [
+        # Row 0 horizontal
+        [0,1], [1,2], [2,3], [3,4], [4,5],
+        # Row 1 horizontal
+        [6,7], [7,8], [8,9], [9,10], [10,11],
+        # Row 2 horizontal
+        [12,13], [13,14], [14,15], [15,16], [16,17],
+        # Row 3 horizontal
+        [18,19], [19,20], [20,21], [21,22], [22,23],
+        # Row 4 horizontal
+        [24,25], [25,26], [26,27], [27,28], [28,29],
+
+        # Vertical edges
+        [0,6], [1,7], [2,8], [3,9], [4,10], [5,11],
+        [6,12], [7,13], [8,14], [9,15], [10,16], [11,17],
+        [12,18], [13,19], [14,20], [15,21], [16,22], [17,23],
+        [18,24], [19,25], [20,26], [21,27], [22,28], [23,29],
+    ]
+    backend = GenericBackendV2(
+        num_qubits=NUM_QUBITS,
+        basis_gates=BASIS,     # optional
+        coupling_map=COUPLING, # strongly recommended
+        control_flow=True,     # set True if you want dynamic circuits
+        seed=1234,             # reproducible auto-generated props
+        noise_info=True        # attach plausible noise/durations
+    )
+
+    return backend
+
+
+
+
+def simple_30_qubit_coupling_map():
+    COUPLING = [
+        # Row 0 horizontal
+        [0,1], [1,2], [2,3], [3,4], [4,5],
+        # Row 1 horizontal
+        [6,7], [7,8], [8,9], [9,10], [10,11],
+        # Row 2 horizontal
+        [12,13], [13,14], [14,15], [15,16], [16,17],
+        # Row 3 horizontal
+        [18,19], [19,20], [20,21], [21,22], [22,23],
+        # Row 4 horizontal
+        [24,25], [25,26], [26,27], [27,28], [28,29],
+
+        # Vertical edges
+        [0,6], [1,7], [2,8], [3,9], [4,10], [5,11],
+        [6,12], [7,13], [8,14], [9,15], [10,16], [11,17],
+        [12,18], [13,19], [14,20], [15,21], [16,22], [17,23],
+        [18,24], [19,25], [20,26], [21,27], [22,28], [23,29],
+    ]
+    return COUPLING
+
+
+
 def get_20_qubit_hardware_coords() -> list[tuple[float, float]]:
     edge_length = 1
     coords = [ ]

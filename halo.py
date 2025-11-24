@@ -1,6 +1,6 @@
 import pickle
 import json
-from hardwares import torino_coupling_map, construct_fake_ibm_torino, simple_20_qubit_coupling_map, construct_20_qubit_hardware
+from hardwares import torino_coupling_map, construct_fake_ibm_torino,construct_30_qubit_hardware, simple_30_qubit_coupling_map
 from instruction import instruction, Instype, parse_program_from_file, construct_qiskit_circuit
 from process import all_pairs_distances, plot_process_schedule_on_torino, process, ProcessStatus
 from typing import Dict, List, Optional, Tuple
@@ -9,6 +9,7 @@ import math
 import queue
 import threading
 import time
+from enum import Enum
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, transpile
 from qiskit_aer import AerSimulator  # <- use AerSimulator (Qiskit 2.x)
@@ -37,7 +38,11 @@ benchmark_suit={
 }
 
 
-
+class SchedulingOptions(Enum):
+    BASELINE_SEQUENTIAL = 0
+    NO_SHARING = 1
+    HALO =2 
+    SHOT_UNAWARE=3
 
 
 def distribution_fidelity(dist1: dict, dist2: dict) -> float:
@@ -97,14 +102,17 @@ beta=100
 gamma=300
 delta=200
 
+#Set the scheduling option here
+Scheduling_Option=SchedulingOptions.HALO
+
 # N_qubits=133
 # hardware_distance_pair=all_pairs_distances(N_qubits, torino_coupling_map())
 fake_torino_backend=construct_fake_ibm_torino()
 
 
-N_qubits=20
-hardware_distance_pair=all_pairs_distances(N_qubits, simple_20_qubit_coupling_map())
-fake_backend=construct_20_qubit_hardware()
+N_qubits=30
+hardware_distance_pair=all_pairs_distances(N_qubits, simple_30_qubit_coupling_map())
+fake_backend=construct_30_qubit_hardware()
 
 
 data_hardware_ratio=0.8
@@ -319,7 +327,7 @@ def propose_neighbor(mapping: Dict[int, tuple[int, int]],
 
 def iteratively_find_the_best_mapping_for_data(process_list: List[process],
                                       n_qubits: int,
-                                      n_restarts: int = 100,
+                                      n_restarts: int = 5,
                                       steps_per_restart: int = 2000
                                       ) -> Dict[int, tuple[int, int]]:
     """
@@ -430,6 +438,8 @@ class jobManager:
         """
         self._virtual_measurement_size = measurement_size
         if self._use_simulator:
+            # Wait for 2 second to simulate the job submission time
+            time.sleep(7)
             raw_result = self.submit_job_to_simulator(shots, scheduled_instructions)
         else:
             raw_result = self.submit_job_to_ibmq(shots,scheduled_instructions)
@@ -645,7 +655,15 @@ class haloScheduler:
         """
         Start the scheduling thread
         """
-        self._scheduler_thread = threading.Thread(target=self.halo_scheduling, daemon=True)
+        if Scheduling_Option == SchedulingOptions.BASELINE_SEQUENTIAL:
+            self._scheduler_thread = threading.Thread(target=self.base_line_sequential_scheduling, daemon=True)
+        elif Scheduling_Option == SchedulingOptions.NO_SHARING:
+            self._scheduler_thread = threading.Thread(target=self.halo_scheduling, daemon=True)
+        elif Scheduling_Option == SchedulingOptions.HALO:
+            self._scheduler_thread = threading.Thread(target=self.halo_scheduling, daemon=True)
+        elif Scheduling_Option == SchedulingOptions.SHOT_UNAWARE:
+            assert False, "Shot unaware scheduling not implemented yet."
+
         self._scheduler_thread.start()
     
 
@@ -689,20 +707,32 @@ class haloScheduler:
 
 
 
-    def get_next_batch(self)-> Optional[Tuple[int, List[process]]]:
+    def get_next_batch(self, force_return: bool = False) -> Optional[Tuple[int, List[process]]]:
         """
         Get the next process batch.
         Return: List[process]
         Just need to make sure the total data qubits in the batch is less than N_qubits
+
+        1. Try to fill up the data qubit Zone as much as possible
+        2. If the force_return is True, return the batch even when the total data qubit usage is less than 50%
+        3. If the total data qubit usage is less than 50%, return None
+
         """
         if len(self._process_queue) == 0:
             return None
+        total_utility=0.0
+        used_qubits=0
         remain_qubits=int(N_qubits*data_hardware_ratio)
         process_batch=[]
         for proc in self._process_queue:
             if proc.get_num_data_qubits()<=remain_qubits:
                 process_batch.append(proc)
+                used_qubits+=proc.get_num_data_qubits()
                 remain_qubits-=proc.get_num_data_qubits()
+
+        total_utility=used_qubits/(N_qubits*data_hardware_ratio)
+        if total_utility<=0.5 and not force_return:
+            return None
         min_shots= min([proc.get_remaining_shots() for proc in process_batch])  
         self._log.append(f"[BATCH] Process batch with {[proc.get_process_id() for proc in process_batch]} selected with min shots {min_shots}.")
         return min_shots,process_batch
@@ -936,7 +966,7 @@ class haloScheduler:
 
                 availble_helper_qubit_list=[phys for phys, available in helper_qubit_available.items() if available]
 
-                if helper_qubit_needed< num_available_helper_qubits:
+                if helper_qubit_needed<= num_available_helper_qubits:
                     topology=proc.get_topology()
                     data_qubit_physical_addresses = process_data_qubit_map[current_proc_id]
                     #Assign helper qubits
@@ -1051,6 +1081,67 @@ class haloScheduler:
             self._log.append(f"[QUEUE STATUS] {tmp_str}")
 
 
+    def base_line_sequential_scheduling(self):
+        """
+        The baseline scheduling algorithm.
+        1) Update the process queue
+        2) Get the next process, allocate qubit for that single process
+        3) Schedule all instructions for that single process
+        4) Send the scheduled instructions to hardware
+        5) Update the process queue after one process execution
+        """
+        start_time=time.time()
+        self._start_time=start_time
+        while not self._stop_event.is_set() or not len(self._process_queue)==0:
+
+
+            # Step 1: Get the next batch of processes
+            if len(self._process_queue) == 0:
+                continue
+
+            next_proc=self._process_queue[0]
+
+            shots = next_proc.get_remaining_shots()
+
+            if shots ==0:
+                continue
+
+
+            # Step 2: Allocate data qubit territory for all processes
+            L=self.allocate_data_qubit([next_proc])
+
+            # Step 2.5: Update the data qubit mapping in each process
+            # for proc in process_batch:
+            #     proc.update_data_qubit_mapping(L)
+
+
+            # Step 3: Dynamically assign helper qubits and schedule instructions
+            total_measurements,measurement_to_process_map, scheduled_instructions = self.dynamic_helper_scheduling(L,[next_proc])
+
+            # Step 4: Send the scheduled instructions to hardware
+            result=self._jobmanager.execute_on_hardware(shots,total_measurements,measurement_to_process_map,scheduled_instructions)
+
+
+            self._log.append(f"[HARDWARE RESULT] {result}")
+            # Step 5: Update the process queue after one batch execution
+            self.update_process_queue(shots,result)
+
+
+            #Clear the queue
+            #self._process_queue.remove(next_proc)
+
+
+            print("[FINISH] Finish current process.")
+
+            self.show_queue(add_to_log=True)
+        end_time=time.time()
+        self._total_running_time=end_time-start_time
+
+
+
+
+
+
     def halo_scheduling(self):
         """
         The main scheduling algorithm. There are multiple steps:
@@ -1063,20 +1154,47 @@ class haloScheduler:
         """
         start_time=time.time()
         self._start_time=start_time
+
+        """
+        Keep track of how long the scheduler has been spinning without doing any work
+        We need to make sure the scheduler can force return a batch after a long spinning time
+        """
+        previous_spinning_start_time=0
+        is_spinning=False
+        max_spinning_time=1  # Set a default max spinning time (in seconds)
         while not self._stop_event.is_set() or not len(self._process_queue)==0:
 
 
             # Step 1: Get the next batch of processes
-            batchresult=self.get_next_batch()
+            # If the next_batch doesn't use enough qubits, wait for the next round
+            #print("Starting to get the next batch...")
+            if is_spinning:
+                spinning_time=time.time()-previous_spinning_start_time
+                if spinning_time>=max_spinning_time:
+                    batchresult=self.get_next_batch(force_return=True)
+            else:
+                batchresult=self.get_next_batch()
+
             if batchresult is None:
+                if not is_spinning:
+                    previous_spinning_start_time=time.time()
+                is_spinning=True
                 continue
+
             shots, process_batch = batchresult
 
             if shots ==0:
                 break
 
             if len(process_batch) == 0:
+                if not is_spinning:
+                    previous_spinning_start_time=time.time()
+                is_spinning=True
                 continue
+
+
+            is_spinning=False
+
 
             # Step 2: Allocate data qubit territory for all processes
             L=self.allocate_data_qubit(process_batch)
@@ -1087,8 +1205,9 @@ class haloScheduler:
 
 
             # Step 3: Dynamically assign helper qubits and schedule instructions
+            print(f"[BATCH START] Scheduling batch with processes {[proc.get_process_id() for proc in process_batch]} for {shots} shots.")
             total_measurements,measurement_to_process_map, scheduled_instructions = self.dynamic_helper_scheduling(L,process_batch)
-
+            print(f"[BATCH END] Finished scheduling batch with processes {[proc.get_process_id() for proc in process_batch]} for {shots} shots.")
             # Step 4: Send the scheduled instructions to hardware
             result=self._jobmanager.execute_on_hardware(shots,total_measurements,measurement_to_process_map,scheduled_instructions)
 
@@ -1098,8 +1217,8 @@ class haloScheduler:
             self.update_process_queue(shots,result)
 
 
-            #Clear the queue
-            for proc in self._process_queue:
+            # Clear the queue
+            for proc in list(self._process_queue):  # iterate over a shallow copy
                 if proc.finish_all_shots():
                     self._process_queue.remove(proc)
 
@@ -1251,7 +1370,7 @@ def construct_qiskit_circuit_for_hardware_instruction(num_measurements:int, inst
 
 
 def random_arrival_generator(scheduler: haloScheduler,
-                             arrival_rate: float = 0.1,
+                             arrival_rate: float = 1,
                              max_time: float = 100.0,
                              share_qubit: bool = True):
     """
@@ -1268,7 +1387,7 @@ def random_arrival_generator(scheduler: haloScheduler,
         # Generate a random process
 
         shots = random.choice(np.arange(500, 2500, 100))
-
+        #shots = 1000
         #Generate a random process from benchmark suit
         benchmark_id = random.randint(0, len(benchmark_suit) - 1)
         proc = generate_process_from_benchmark(benchmark_id, pid, shots, share_qubit=share_qubit)
@@ -1374,16 +1493,15 @@ if __name__ == "__main__":
     haloScheduler_instance.start()
 
 
-
     producer_thread = threading.Thread(
         target=random_arrival_generator,
-        args=(haloScheduler_instance, 0.3, 40.0,True),
+        args=(haloScheduler_instance, 1, 20.0, True),
         daemon=False
     )
     producer_thread.start()
 
 
-    simulation_time = 40  # seconds
+    simulation_time = 30  # seconds
     time.sleep(simulation_time)
 
 
@@ -1395,5 +1513,5 @@ if __name__ == "__main__":
     print("Simulation finished.")
 
 
-    haloScheduler_instance.store_log("halo_scheduler_log_not_share.txt")
+    haloScheduler_instance.store_log("halo_scheduler_log.txt")
 

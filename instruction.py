@@ -748,6 +748,135 @@ def parse_program_from_file(file_path: str) -> Tuple[List[instruction], int, int
     
 
 
+
+
+
+def generate_program_without_helper_qubit(data_n, syn_n, original_inst_list: List[instruction]) -> str:
+    """
+    Generate a new program without any helper qubits.
+    All helper qubits are re-labeled as data qubits.
+
+    
+    For example, input program:
+
+    q = alloc_data(3)
+    s = alloc_helper(2)
+    set_shot(1000)
+    H s0
+    CNOT q0, s0
+    CNOT q1, s0
+    H s0
+    c0 = MEASURE s0
+    deallocate_helper(s0)
+    H s1
+    CNOT q1, s1
+    CNOT q2, s1
+    H s1
+    c1 = MEASURE s1
+    deallocate_helper(s1)
+    deallocate_data(q)
+
+    Output program:
+
+    q = alloc_data(5)
+    set_shot(1000)
+    H q3
+    CNOT q0, q3
+    CNOT q1, q3
+    H q3
+    c0 = MEASURE q3
+    H q4
+    CNOT q1, q4
+    CNOT q2, q4
+    H q4
+    c1 = MEASURE q4
+    deallocate_data(q)
+
+    """
+    output_program="q = alloc_data("+str(data_n+syn_n)+")\n"
+
+    for inst in  original_inst_list:
+        if inst.is_system_call():
+            continue
+        addresses = inst.get_qubitaddress()
+        qiskitaddress=[]
+        for addr in addresses:
+            if addr.startswith('s'):
+                qiskitaddress.append('q'+str(int(addr[1:])+data_n))
+            else:
+                qiskitaddress.append(addr)
+        match inst.get_type():
+            case Instype.H:
+                output_program+="H "+qiskitaddress[0]+"\n"
+            case Instype.X:
+                output_program+="X "+qiskitaddress[0]+"\n"
+            case Instype.Y:
+                output_program+="Y "+qiskitaddress[0]+"\n"
+            case Instype.Z:
+                output_program+="Z "+qiskitaddress[0]+"\n"
+            case Instype.T:
+                output_program+="T "+qiskitaddress[0]+"\n"
+            case Instype.Tdg:
+                output_program+="Tdg "+qiskitaddress[0]+"\n"
+            case Instype.S:
+                output_program+="S "+qiskitaddress[0]+"\n"
+            case Instype.Sdg:
+                output_program+="Sdg "+qiskitaddress[0]+"\n"
+            case Instype.SX:
+                output_program+="SX "+qiskitaddress[0]+"\n"
+            case Instype.RZ:
+                params=inst.get_params()
+                output_program+="RZ("+str(params[0])+") "+qiskitaddress[0]+"\n"
+            case Instype.RX:
+                params=inst.get_params()
+                output_program+="RX("+str(params[0])+") "+qiskitaddress[0]+"\n"
+            case Instype.RY:
+                params=inst.get_params()
+                output_program+="RY("+str(params[0])+") "+qiskitaddress[0]+"\n"
+            case Instype.U3:
+                params=inst.get_params()
+                output_program+="U3("+str(params[0])+", "+str(params[1])+", "+str(params[2])+") "+qiskitaddress[0]+"\n"
+            case Instype.U:
+                params=inst.get_params()
+                output_program+="U("+str(params[0])+", "+str(params[1])+", "+str(params[2])+") "+qiskitaddress[0]+"\n"
+            case Instype.Toffoli:
+                output_program+="Toffoli "+qiskitaddress[0]+", "+qiskitaddress[1]+", "+qiskitaddress[2]+"\n"
+            case Instype.CNOT:
+                output_program+="CNOT "+qiskitaddress[0]+", "+qiskitaddress[1]+"\n"
+            case Instype.CH:
+                output_program+="CH "+qiskitaddress[0]+", "+qiskitaddress[1]+"\n"
+            case Instype.SWAP:
+                output_program+="SWAP "+qiskitaddress[0]+", "+qiskitaddress[1]+"\n"
+            case Instype.CSWAP:
+                output_program+="CSWAP "+qiskitaddress[0]+", "+qiskitaddress[1]+", "+qiskitaddress[2]+"\n"
+            case Instype.CP:
+                params=inst.get_params()
+                output_program+="CP "+str(params[0])+", "+qiskitaddress[0]+", "+qiskitaddress[1]+"\n"
+            case Instype.RESET:
+                output_program+="RESET "+qiskitaddress[0]+"\n"
+            case Instype.RELEASE:
+                continue
+            case Instype.MEASURE:
+                classical_address=inst.get_classical_address()
+                output_program+="c"+str(classical_address)+" = MEASURE "+qiskitaddress[0]+"\n"
+
+    output_program+="deallocate_data(q)\n"
+    return output_program
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 benchmark_suit={
     0:"cat_state_prep_n4",
     1:"cat_state_verification_n4",
@@ -755,34 +884,66 @@ benchmark_suit={
     3:"shor_parity_measurement_n4",
     4:"shor_stabilizer_XZZX_n3",
     5:"shor_stabilizer_ZZZZ_n4",
-    6:"syndrome_extraction_surface_n3"
+    6:"syndrome_extraction_surface_n4"
 }
 
 
+
+def rewrite_benchmark_program():
+    """
+    Rewrite the benchmark program with the given ID to remove helper qubits.
+    Store the file to the benchmarkdata directory with the same name.
+    """
+
+    for benchmark_id in benchmark_suit.keys():
+        file_path = f"C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\{benchmark_suit[benchmark_id]}"
+
+        inst_list, data_n, syn_n, measure_n = parse_program_from_file(file_path)
+
+        output_program = generate_program_without_helper_qubit(data_n, syn_n, inst_list)
+
+        output_file_path = f"C:\\Users\\yezhu\\Documents\\HALO\\benchmarkdata\\{benchmark_suit[benchmark_id]}"
+
+        with open(output_file_path, "w") as f:
+            f.write(output_program)
+
+
+
+
+
 if __name__ == "__main__":
-
-   file_path = "C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\syndrome_extraction_surface_n4"
-
-
+    rewrite_benchmark_program()
+#    file_path = "C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\syndrome_extraction_surface_n4"
 
 
-   inst_list, data_n, syn_n, measure_n = parse_program_from_file(file_path)
 
 
-   qiskit_circuit = construct_qiskit_circuit(data_n, syn_n, measure_n, inst_list)
+#    inst_list, data_n, syn_n, measure_n = parse_program_from_file(file_path)
 
 
-   shots = 2000
 
-   sim = AerSimulator()
-   tqc = transpile(qiskit_circuit, sim)
+#    output_program = generate_program_without_helper_qubit(data_n, syn_n, inst_list)
 
-   # Run with 1000 shots
-   result = sim.run(tqc, shots=shots).result()
-   counts = result.get_counts(tqc)
 
-   with open("C://Users//yezhu//Documents//HALO//benchmark//result2000shots//syndrome_extraction_surface_n4_counts.pkl", "wb") as f:
-     pickle.dump(counts, f)
+#    print(output_program)
+
+
+
+
+#    qiskit_circuit = construct_qiskit_circuit(data_n, syn_n, measure_n, inst_list)
+
+
+#    shots = 2000
+
+#    sim = AerSimulator()
+#    tqc = transpile(qiskit_circuit, sim)
+
+#    # Run with 1000 shots
+#    result = sim.run(tqc, shots=shots).result()
+#    counts = result.get_counts(tqc)
+
+#    with open("C://Users//yezhu//Documents//HALO//benchmark//result2000shots//syndrome_extraction_surface_n4_counts.pkl", "wb") as f:
+#      pickle.dump(counts, f)
 
 
    #print(simulate_result)

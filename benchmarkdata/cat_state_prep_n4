@@ -1,19 +1,12 @@
 q = alloc_data(7)
-set_shot(1000)
-
 H q0
-
 CNOT q0, q4
 CNOT q4, q1
 c0 = MEASURE q4
-
-
-CNOT q0, s5
+CNOT q0, q5
 CNOT q5, q2
 c1 = MEASURE q5
-
 CNOT q0, q6
 CNOT q6, q3
 c2 = MEASURE q6
-
 deallocate_data(q)
