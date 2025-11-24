@@ -1,6 +1,6 @@
 import pickle
 import json
-from hardwares import torino_coupling_map, construct_fake_ibm_torino,construct_30_qubit_hardware, simple_30_qubit_coupling_map
+from hardwares import construct_30_qubit_hardware, simple_10_qubit_coupling_map, simple_20_qubit_coupling_map, torino_coupling_map, construct_fake_ibm_torino, construct_10_qubit_hardware, simple_30_qubit_coupling_map
 from instruction import instruction, Instype, parse_program_from_file, construct_qiskit_circuit
 from process import all_pairs_distances, plot_process_schedule_on_torino, process, ProcessStatus
 from typing import Dict, List, Optional, Tuple
@@ -444,6 +444,10 @@ class jobManager:
         else:
             raw_result = self.submit_job_to_ibmq(shots,scheduled_instructions)
 
+
+        # print("Measurement to process map:", measurement_to_process_map)
+        # print("Raw result from hardware/simulator:", raw_result)
+
         redistributed_result = self.redistribute_job_result(measurement_to_process_map, raw_result)
         return redistributed_result
 
@@ -575,10 +579,17 @@ class jobManager:
         """
         sim = AerSimulator()
         qiskit_circuit = construct_qiskit_circuit_for_hardware_instruction(self._virtual_measurement_size, scheduled_instructions)
+        
+        #qiskit_circuit.draw("mpl").savefig("simulated_circuit.png")
+        
         tqc = transpile(qiskit_circuit, sim)
         # Run with 1000 shots
         result = sim.run(tqc, shots=shots).result()
+
         counts = result.get_counts(tqc)
+
+
+        # print("result:", counts)
         return counts
 
 
@@ -894,8 +905,11 @@ class haloScheduler:
                 For example, measurement address 0 -> process id 1, measurement address 1 -> process id 2
                 The mapping is:
                 measurement_to_process_map:  {0: 1, 1: 2}
+
+                We need to initialize a new measurement instruction
                 """
                 if next_inst.is_measurement():
+                    next_inst.set_scheduled_classical_address(current_measurement_index)
                     final_scheduled_instructions.append(next_inst)
                     measurement_to_process_map[current_measurement_index] = current_proc_id
                     current_measurement_index += 1
@@ -1362,8 +1376,8 @@ def construct_qiskit_circuit_for_hardware_instruction(num_measurements:int, inst
             case Instype.RESET:
                 qiskit_circuit.reset(dataqubit[inst.get_reset_address()])
             case Instype.MEASURE:
-                classical_address=inst.get_classical_address()
-                qiskit_circuit.measure(qiskitaddress[0], classical_address)
+                scheduled_classical_address=inst.get_scheduled_classical_address()
+                qiskit_circuit.measure(qiskitaddress[0], scheduled_classical_address)
 
     return qiskit_circuit
 
@@ -1495,7 +1509,7 @@ if __name__ == "__main__":
 
     producer_thread = threading.Thread(
         target=random_arrival_generator,
-        args=(haloScheduler_instance, 1, 20.0, True),
+        args=(haloScheduler_instance, 0.2, 20.0, True),
         daemon=False
     )
     producer_thread.start()

@@ -130,6 +130,7 @@ class instruction:
             if classical_address is None:
                 raise ValueError("Classical address must be provided for MEASURE instruction.")
             self._classical_address=classical_address
+            self._scheduled_classical_address=None
         if self._type==Instype.RESET:
             if reset_address is None:
                 raise ValueError("Reset address must be provided for RESET instruction.")
@@ -140,6 +141,32 @@ class instruction:
                 self._helper_qubit_count+=1
 
         self._processID=-1
+
+
+
+    def set_scheduled_classical_address(self, classical_address: int):
+        """
+        Set the scheduled classical address associated with the instruction.
+        
+        Args:
+            classical_address (int): The scheduled classical address to set.
+        """
+        if self._type != Instype.MEASURE:
+            raise ValueError("Scheduled classical address is only applicable for MEASURE instructions.")
+        self._scheduled_classical_address = classical_address
+
+
+    def get_scheduled_classical_address(self) -> int:
+        """
+        Get the scheduled classical address associated with the instruction.
+        
+        Returns:
+            int: The scheduled classical address for the instruction.
+        """
+        if self._type != Instype.MEASURE:
+            raise ValueError("Scheduled classical address is only applicable for MEASURE instructions.")
+        return self._scheduled_classical_address
+
 
 
     def set_processID(self, processID: int):
@@ -273,7 +300,7 @@ class instruction:
 
     def reset_mapping(self):
         self._scheduled_mapped_address={} # This is the physical address after scheduling
-
+        self._scheduled_classical_address=None
 
     def is_reset(self) -> bool:
         """
@@ -483,8 +510,8 @@ def construct_qiskit_circuit(num_data_qubit: int, num_syndrome_qubit: int, num_c
             case Instype.RELEASE:
                 qiskit_circuit.reset(qiskitaddress[0])
             case Instype.MEASURE:
-                classical_address=inst.get_classical_address()
-                qiskit_circuit.measure(qiskitaddress[0], classical_address)
+                scheduled_classical_address=inst.get_scheduled_classical_address()
+                qiskit_circuit.measure(qiskitaddress[0], scheduled_classical_address)
 
     return qiskit_circuit
 

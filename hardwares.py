@@ -112,6 +112,24 @@ def construct_fake_ibm_torino():
 
 
 
+def construct_10_qubit_hardware():
+    NUM_QUBITS = 10
+    COUPLING = [[0, 1], [1, 2], [2, 3], [3, 4], [0,5], [1,6], [2,7], [3,8], [4,9],[5,6], [6,7],[7,8],[8,9]]  # linear chain
+    BASIS = ["cx", "id", "rz", "sx", "x"]  # add more *only* if truly native
+
+    backend = GenericBackendV2(
+        num_qubits=NUM_QUBITS,
+        basis_gates=BASIS,         # optional
+        coupling_map=COUPLING,     # strongly recommended
+        control_flow=True,        # set True if you want dynamic circuits            
+        seed=1234,                 # reproducible auto-generated props
+        noise_info=True            # attach plausible noise/durations
+    )
+
+    return backend    
+
+
+
 def construct_20_qubit_hardware():
     NUM_QUBITS = 20
     COUPLING = [[0, 1], [1, 2], [2, 3], [3, 4], 
