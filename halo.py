@@ -98,9 +98,9 @@ gamma: weight for helper qubit cost
 delta: weight for compact cost
 """
 alpha=0.3
-beta=100
-gamma=300
-delta=200
+beta=5000
+gamma=1
+delta=1000
 
 #Set the scheduling option here
 Scheduling_Option=SchedulingOptions.HALO
@@ -110,9 +110,9 @@ Scheduling_Option=SchedulingOptions.HALO
 fake_torino_backend=construct_fake_ibm_torino()
 
 
-N_qubits=30
-hardware_distance_pair=all_pairs_distances(N_qubits, simple_30_qubit_coupling_map())
-fake_backend=construct_30_qubit_hardware()
+N_qubits=133
+hardware_distance_pair=all_pairs_distances(N_qubits, torino_coupling_map())
+fake_backend=construct_fake_ibm_torino()
 
 
 data_hardware_ratio=0.8
@@ -1400,8 +1400,8 @@ def random_arrival_generator(scheduler: haloScheduler,
 
         # Generate a random process
 
-        shots = random.choice(np.arange(500, 2500, 100))
-        #shots = 1000
+        #shots = random.choice(np.arange(500, 2500, 100))
+        shots = 1000
         #Generate a random process from benchmark suit
         benchmark_id = random.randint(0, len(benchmark_suit) - 1)
         proc = generate_process_from_benchmark(benchmark_id, pid, shots, share_qubit=share_qubit)
@@ -1503,19 +1503,19 @@ if __name__ == "__main__":
     random.seed(42)
 
 
-    haloScheduler_instance=haloScheduler(use_simulator=True)
+    haloScheduler_instance=haloScheduler(use_simulator=False)
     haloScheduler_instance.start()
 
 
     producer_thread = threading.Thread(
         target=random_arrival_generator,
-        args=(haloScheduler_instance, 0.2, 20.0, True),
+        args=(haloScheduler_instance, 0.8, 50.0, True),
         daemon=False
     )
     producer_thread.start()
 
 
-    simulation_time = 30  # seconds
+    simulation_time = 80  # seconds
     time.sleep(simulation_time)
 
 
@@ -1527,5 +1527,5 @@ if __name__ == "__main__":
     print("Simulation finished.")
 
 
-    haloScheduler_instance.store_log("halo_scheduler_log.txt")
+    haloScheduler_instance.store_log("halo_scheduler_same_shot_80.txt")
 
