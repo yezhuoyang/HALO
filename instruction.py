@@ -1,4 +1,5 @@
 from enum import Enum
+import random
 from typing import List, Tuple, Optional
 import qiskit.qasm2
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, transpile
@@ -550,7 +551,8 @@ def _grab_params(text_after_gate: str) -> Tuple[List[float], str]:
     return params, remainder
 
 
-def parse_program_from_file(file_path: str) -> Tuple[List[instruction], int, int, int]:
+
+def parse_program_from_string(qasm_code: str) -> Tuple[List[instruction], int, int, int]:
     """
     Parse the custom process program DSL into a `process` object.
     Return (inst_list, data_n, syn_n,measure_n).
@@ -570,9 +572,6 @@ def parse_program_from_file(file_path: str) -> Tuple[List[instruction], int, int
         deallocate_data(q)
         deallocate_helper(s)
     """
-    with open(file_path, "r") as file:
-        qasm_code = file.read()    
-
     # normalize and split lines
     raw_lines = [ln.strip() for ln in qasm_code.strip().splitlines() if ln.strip()]
 
@@ -734,15 +733,30 @@ def parse_program_from_file(file_path: str) -> Tuple[List[instruction], int, int
             add_oneq_gate(Instype.U, target, params=params)
             continue
 
-        # Parameterized two-qubit
-        if gate.startswith("cu1") or gate.startswith("cp"):  # accept CP as CU1 alias if desired
-            params, rest2 = _grab_params(rest if gate in ("cu1", "cp") else gate_full[3:] + rest)
+        if gate.startswith("cu1") or gate.startswith("cp"):
+            # Decide how to build the string we feed into _grab_params
+            # Case A: token is just "cu1" or "cp" and params are in `rest`,
+            #         e.g. "CP (theta) q0, q1"
+            if gate in ("cu1", "cp"):
+                param_src = rest
+            else:
+                # Case B: token already includes the "(", e.g. "CP(theta)"
+                #         so slice off the name and keep from "(" onward.
+                # length of name: 3 for CU1, 2 for CP
+                name_len = 3 if gate.startswith("cu1") else 2
+                param_src = gate_full[name_len:] + rest
+                # e.g. gate_full = "CP(0.5)"  -> gate_full[2:] = "(0.5)"
+                #      param_src = "(0.5)" + "q0, q1" -> "(0.5)q0, q1"
+
+            params, rest2 = _grab_params(param_src)
+
             if len(params) != 1:
                 raise ValueError(f"CU1/CP expects 1 parameter, got {params}")
-            # rest2 shape: "q0, q1"
+
+            # rest2 should now look like "q0, q1"
             toks = [t.strip() for t in rest2.split(",")]
             if len(toks) != 2:
-                raise ValueError(f"CU1 expects two qubit args, got '{rest2}'")
+                raise ValueError(f"CU1/CP expects two qubit args, got '{rest2}'")
             add_twoq_gate(Instype.CP, toks[0], toks[1], params=params)
             continue
 
@@ -771,10 +785,306 @@ def parse_program_from_file(file_path: str) -> Tuple[List[instruction], int, int
         raise ValueError(f"Unsupported or malformed instruction line: '{ln}'")
 
 
-    return inst_list, data_n, syn_n, measure_n
+    return inst_list, data_n, syn_n, measure_n    
+
+
+
+
+def parse_program_from_file(file_path: str) -> Tuple[List[instruction], int, int, int]:
+    """
+    Parse the custom process program DSL from a file into a `process` object.
+    Return (inst_list, data_n, syn_n, measure_n).
+    """
+    with open(file_path, 'r') as file:
+        qasm_code = file.read()
+    return parse_program_from_string(qasm_code)
+
+
+
+
+
+def toffoli_decomposition(qubit1: str, qubit2: str, qubit3: str) -> Tuple[List[instruction], str]:
+    """
+    We construct the Toffoli gate by decomposing it into a series of CNOT and single-qubit gates:
     
 
+    CCX(a, b, c) = H(c) CNOT(b, c) Tdg(c) CNOT(a, c) T(c) CNOT(b, c) Tdg(c) CNOT(a, c) T(b) T(c) H(c) CNOT(a, b) T(a) Tdg(b) CNOT(a, b) 
+    """
+    program_string = ""
+    inst_list = []
+    inst_list.append(instruction(Instype.H, [qubit3]))
+    program_string += f"H {qubit3}\n"
+    inst_list.append(instruction(Instype.CNOT, [qubit2, qubit3]))
+    program_string += f"CNOT {qubit2}, {qubit3}\n"
+    inst_list.append(instruction(Instype.Tdg, [qubit3]))
+    program_string += f"Tdg {qubit3}\n"
+    inst_list.append(instruction(Instype.CNOT, [qubit1, qubit3]))
+    program_string += f"CNOT {qubit1}, {qubit3}\n"
+    inst_list.append(instruction(Instype.T, [qubit3]))
+    program_string += f"T {qubit3}\n"
+    inst_list.append(instruction(Instype.CNOT, [qubit2, qubit3]))
+    program_string += f"CNOT {qubit2}, {qubit3}\n"
+    inst_list.append(instruction(Instype.Tdg, [qubit3]))
+    program_string += f"Tdg {qubit3}\n"
+    inst_list.append(instruction(Instype.CNOT, [qubit1, qubit3]))
+    program_string += f"CNOT {qubit1}, {qubit3}\n"
+    inst_list.append(instruction(Instype.T, [qubit2]))
+    program_string += f"T {qubit2}\n"
+    inst_list.append(instruction(Instype.T, [qubit3]))
+    program_string += f"T {qubit3}\n"
+    inst_list.append(instruction(Instype.H, [qubit3]))
+    program_string += f"H {qubit3}\n"
+    inst_list.append(instruction(Instype.CNOT, [qubit1, qubit2]))
+    program_string += f"CNOT {qubit1}, {qubit2}\n"
+    inst_list.append(instruction(Instype.T, [qubit1]))
+    program_string += f"T {qubit1}\n"
+    inst_list.append(instruction(Instype.Tdg, [qubit2]))
+    program_string += f"Tdg {qubit2}\n"
+    inst_list.append(instruction(Instype.CNOT, [qubit1, qubit2]))
+    program_string += f"CNOT {qubit1}, {qubit2}\n"
+    return inst_list, program_string    
 
+
+
+def generate_multi_controlled_x(num_controls: int, decompose_toffoli: bool) -> Tuple[List[instruction], str]:
+    """
+    Generate a multi-controlled X gate using ancilla qubits.
+    Returns a list of instructions implementing the multi-controlled X gate.
+    """
+    program_string = ""
+    inst_list = []
+    program_string += f"q = alloc_data({num_controls+1})\n"
+    program_string += f"s = alloc_helper({num_controls-1})\n"
+
+    if decompose_toffoli:
+        toffoli_insts, toffoli_str = toffoli_decomposition(f"q0", f"q1", f"s0")
+        inst_list.extend(toffoli_insts)
+        program_string += toffoli_str
+    else:
+        inst_list.append(instruction(Instype.Toffoli, [f"q0", f"q1", f"s0"]))
+        program_string += f"Toffoli q0, q1, s0\n"
+
+    for i in range(2, num_controls):
+        if decompose_toffoli:
+            toffoli_insts, toffoli_str = toffoli_decomposition(f"q{i}", f"s{i-2}", f"s{i-1}")
+            inst_list.extend(toffoli_insts)
+            program_string += toffoli_str
+        else:
+            inst_list.append(instruction(Instype.Toffoli, [f"q{i}", f"s{i-2}", f"s{i-1}"]))
+            program_string += f"Toffoli q{i}, s{i-2}, s{i-1}\n"
+
+    inst_list.append(instruction(Instype.CNOT, [f"s{num_controls-2}", f"q{num_controls}"]))
+    program_string += f"CNOT s{num_controls-2}, q{num_controls}\n"
+
+    #Uncompute
+    for i in range(num_controls-1, 1, -1):
+        if decompose_toffoli:
+            toffoli_insts, toffoli_str = toffoli_decomposition(f"q{i}", f"s{i-2}", f"s{i-1}")
+            inst_list.extend(toffoli_insts)
+            program_string += toffoli_str
+        else:
+            inst_list.append(instruction(Instype.Toffoli, [f"q{i}", f"s{i-2}", f"s{i-1}"]))
+            program_string += f"Toffoli q{i}, s{i-2}, s{i-1}\n"
+        #Release helper qubit
+        inst_list.append(instruction(Instype.RELEASE, [f"s{i-1}"]))
+        program_string += f"deallocate_helper(s{i-1})\n"
+
+    if decompose_toffoli:
+        toffoli_insts, toffoli_str = toffoli_decomposition(f"q0", f"q1", f"s0")
+        inst_list.extend(toffoli_insts)
+        program_string += toffoli_str
+    else:
+        inst_list.append(instruction(Instype.Toffoli, [f"q0", f"q1", f"s0"]))
+        program_string += f"Toffoli q0, q1, s0\n"
+    #Release helper qubit
+    inst_list.append(instruction(Instype.RELEASE, [f"s0"]))
+    program_string += f"deallocate_helper(s0)\n"
+
+
+    program_string += f"deallocate_data(q)\n"
+    return inst_list, program_string
+
+
+
+
+def generate_stabilizer_measurement_circuit(n_data:int,stabilizers:List[str], round: int) -> Tuple[List[instruction], str]:
+    """
+    Provided a list of stabilizers in string format (e.g., "XZZXI"),
+    generate the corresponding stabilizer measurement circuit which measure round `round`.
+    """
+    program_string = ""
+    inst_list = []
+    program_string += f"q = alloc_data({n_data})\n"
+    program_string += f"s = alloc_helper({round*len(stabilizers)})\n"
+
+    for stab_index, stabilizer in enumerate(stabilizers):
+        ancilla_qubit = f"s{stab_index + round*len(stabilizers)}"
+
+
+        inst_list.append(instruction(Instype.H, [ancilla_qubit]))
+        program_string += f"H {ancilla_qubit}\n"
+
+        for data_index, pauli in enumerate(stabilizer):
+            data_qubit = f"q{data_index}"
+            match pauli:
+                case 'X':
+                    inst_list.append(instruction(Instype.CNOT, [data_qubit, ancilla_qubit]))
+                    program_string += f"CNOT {ancilla_qubit}, {data_qubit}\n"
+                case 'Z':
+                    inst_list.append(instruction(Instype.H, [data_qubit]))
+                    program_string += f"H {data_qubit}\n"
+                    inst_list.append(instruction(Instype.CNOT, [data_qubit, ancilla_qubit]))
+                    program_string += f"CNOT {ancilla_qubit}, {data_qubit}\n"
+                    inst_list.append(instruction(Instype.H, [data_qubit]))
+                    program_string += f"H {data_qubit}\n"
+                case 'I':
+                    continue
+                case _:
+                    raise ValueError(f"Invalid Pauli operator '{pauli}' in stabilizer '{stabilizer}'")
+
+        # Final Hadamard on ancilla qubit before measurement
+        inst_list.append(instruction(Instype.H, [ancilla_qubit]))
+        program_string += f"H {ancilla_qubit}\n"
+
+        # Measure the ancilla qubit
+        classical_address = stab_index + round * len(stabilizers)
+        inst_list.append(instruction(Instype.MEASURE, [ancilla_qubit], classical_address=classical_address))
+        program_string += f"c{classical_address} = MEASURE {ancilla_qubit}\n"
+
+
+        #Release the used ancilla qubit
+        inst_list.append(instruction(Instype.RELEASE, [ancilla_qubit]))
+        program_string += f"deallocate_helper({ancilla_qubit})\n"
+
+    program_string += f"deallocate_data(q)\n"
+    return inst_list, program_string
+
+
+
+
+
+
+def generate_random_boolean_function(num_vars: int, num_gates: int, seed: int=None) -> Tuple[List[instruction], str]:
+    pass
+
+
+
+
+
+
+
+def generate_random_program(data_n: int, syn_n: int, gate_count: int,seed: int=None) -> Tuple[List[instruction], str]:
+    """
+    Generate a completely random program with the given parameters.
+    """
+    if seed is not None:
+        random.seed(seed)
+
+    program_string = ""
+    inst_list = []
+    program_string += f"q = alloc_data({data_n})\n"
+    program_string += f"s = alloc_helper({syn_n})\n"
+
+
+
+    """
+    We maintain a set of active helper qubits.
+    When we release a helper qubit, we remove it from the set.
+    """
+    active_helper_qubits = set()
+    for i in range(syn_n):
+        active_helper_qubits.add(f"s{i}")
+    active_data_qubits = set()
+    for i in range(data_n):
+        active_data_qubits.add(f"q{i}")
+
+    forbidden = {Instype.RESET,
+                Instype.CSWAP, Instype.Toffoli, Instype.RELEASE}
+    allowed = [g for g in Instype if g not in forbidden]
+
+
+
+    #Randomize the location of release instructions
+    release_locations = random.sample(range(gate_count)[2:], k=syn_n)
+    current_gate_count = 0
+
+    current_measure_index = 0
+    for _ in range(gate_count):
+        # Randomly choose gate type and qubits
+
+        if current_gate_count in release_locations and active_helper_qubits:
+            random_qubit = random.choice(list(active_helper_qubits))
+            inst = instruction(Instype.MEASURE, [random_qubit], classical_address=current_measure_index)
+            inst_list.append(inst)
+            program_string += f"c{current_measure_index} = MEASURE {random_qubit}\n"
+            current_measure_index += 1
+            inst = instruction(Instype.RELEASE, [random_qubit])
+            active_helper_qubits.remove(random_qubit)
+            program_string += f"deallocate_helper({random_qubit})\n"
+            inst_list.append(inst)
+            current_gate_count += 1
+            continue
+
+        gate_type = random.choice(allowed)
+        """
+        Randomly generate two qubit,
+        either qk or sk, k is the qubit index
+        We can only choose from active helper qubits
+        """
+        if active_data_qubits==set() and active_helper_qubits==set():
+            break
+
+
+        match gate_type:
+            case Instype.H | Instype.X | Instype.Y | Instype.Z | Instype.T | Instype.Tdg | Instype.S | Instype.Sdg | Instype.SX:
+                random_qubit = random.choice(list(active_data_qubits)+list(active_helper_qubits))
+                inst = instruction(gate_type, [random_qubit])          
+                inst_list.append(inst)      
+                program_string += f"{get_gate_type_name(gate_type)} {random_qubit}\n"
+            case Instype.RZ | Instype.RX | Instype.RY:
+                random_qubit = random.choice(list(active_data_qubits)+list(active_helper_qubits))
+                angle = random.uniform(0, 2 * 3.141592653589793)
+                inst = instruction(gate_type, [random_qubit], params=[angle])
+                inst_list.append(inst)
+                program_string += f"{get_gate_type_name(gate_type)}({angle}) {random_qubit} \n"
+            case Instype.U3 | Instype.U:
+                random_qubit = random.choice(list(active_data_qubits)+list(active_helper_qubits))
+                angles = [random.uniform(0, 2 * 3.141592653589793) for _ in range(3)]
+                inst = instruction(gate_type, [random_qubit], params=angles)
+                inst_list.append(inst)
+                program_string += f"{get_gate_type_name(gate_type)}({angles[0]}, {angles[1]}, {angles[2]}) {random_qubit} \n"
+            case Instype.CNOT | Instype.CH | Instype.SWAP:
+                qubits = random.sample(list(active_data_qubits)+list(active_helper_qubits), k=2)
+                inst = instruction(gate_type, qubits)
+                inst_list.append(inst)
+                program_string += f"{get_gate_type_name(gate_type)} {qubits[0]}, {qubits[1]}\n"
+            case Instype.CP:
+                qubits = random.sample(list(active_data_qubits)+list(active_helper_qubits), k=2)
+                angle = random.uniform(0, 2 * 3.141592653589793)
+                inst = instruction(gate_type, qubits, params=[angle])
+                inst_list.append(inst)
+                program_string += f"{get_gate_type_name(gate_type)}({angle}) {qubits[0]}, {qubits[1]}\n"
+            case Instype.MEASURE:
+                random_qubit = random.choice(list(active_data_qubits)+list(active_helper_qubits))
+                inst = instruction(gate_type, [random_qubit], classical_address=current_measure_index)
+                inst_list.append(inst)
+                program_string += f"c{current_measure_index} = MEASURE {random_qubit}\n"
+                current_measure_index += 1
+                # Remove the measured qubit from active sets
+                if random_qubit.startswith('q'):
+                    active_data_qubits.remove(random_qubit)
+                else:
+                    active_helper_qubits.remove(random_qubit)
+                    #Add a release instruction
+                    inst = instruction(Instype.RELEASE, [random_qubit])
+                    inst_list.append(inst)
+                    program_string += f"deallocate_helper({random_qubit})\n"
+
+
+        current_gate_count += 1
+
+    program_string += "deallocate_data(q)\n"
+    return inst_list, program_string
 
 
 
@@ -939,7 +1249,31 @@ def rewrite_benchmark_program():
 
 
 if __name__ == "__main__":
-    rewrite_benchmark_program()
+    #rewrite_benchmark_program()
+
+    # inst_list, prog_str=generate_random_program(data_n=5, syn_n=5, gate_count=20, seed=42)
+    # for inst in inst_list:
+    #     print(inst)
+
+    # print("----------------------------------------------------------------------------")
+    # print(prog_str)
+
+    # new_inst_list, data_n, syn_n, measure_n = parse_program_from_string(prog_str)
+
+
+    # for inst in new_inst_list:
+    #     print(inst)
+
+    inst_list, program_string = generate_stabilizer_measurement_circuit(5, ["XZZXI", "IXZZX", "XIXZZ", "ZXIXZ"], round=2)
+
+    print(program_string)
+
+    # inst_list, program_string = generate_multi_controlled_x(4, decompose_toffoli=True)
+
+    # print(program_string)
+
+
+
 #    file_path = "C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\syndrome_extraction_surface_n4"
 
 

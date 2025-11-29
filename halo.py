@@ -38,6 +38,18 @@ benchmark_suit={
 }
 
 
+
+
+
+class benchmarktype(Enum):
+    RANDOM = 1
+    MULTI_CONTROLLED_X = 2
+    STABILIZER_MEASUREMENT =3
+    CLASSICAL_LOGIC =4
+    LCU=5
+
+
+
 class SchedulingOptions(Enum):
     BASELINE_SEQUENTIAL = 0
     NO_SHARING = 1
@@ -97,13 +109,16 @@ beta: weight for inter-process cost
 gamma: weight for helper qubit cost
 delta: weight for compact cost
 """
-alpha=0.3
-beta=5000
+alpha=0.5
+beta=0.3
 gamma=1
-delta=1000
+delta=0.3
+eps = 0.3
 
 #Set the scheduling option here
 Scheduling_Option=SchedulingOptions.HALO
+benchmark_Option=benchmarktype.MULTI_CONTROLLED_X
+
 
 # N_qubits=133
 # hardware_distance_pair=all_pairs_distances(N_qubits, torino_coupling_map())
@@ -112,6 +127,7 @@ fake_torino_backend=construct_fake_ibm_torino()
 
 N_qubits=133
 hardware_distance_pair=all_pairs_distances(N_qubits, torino_coupling_map())
+DIST_MATRIX = np.asarray(hardware_distance_pair, dtype=float)
 fake_backend=construct_fake_ibm_torino()
 
 
@@ -121,6 +137,108 @@ max_data_helper_distance=10
 
 # N_qubits=10
 # hardware_distance_pair=all_pairs_distances(N_qubits, simple_10_qubit_coupling_map())
+
+
+
+
+
+
+def calculate_intro_cost_for_process(process_list: List[process],proc_mapping: Dict[int, Dict[int, int]]) -> float:
+    """
+    Calculate the intra-process cost for all processes in the batch given the mapping
+    The intro cost is defined as the layout mapping cost within each process
+    """
+    intro_cost=0.0
+    #First step, calculate the intra cost of all process
+    for proc in process_list:
+        intro_cost+=proc.intro_costs(proc_mapping[proc.get_process_id()],DIST_MATRIX)
+        # intro_cost+=proc.intro_costs(proc_mapping[proc.get_process_id()],hardware_distance_pair)
+
+    return intro_cost
+
+
+
+
+def calculate_helper_cost_for_process(process_list: List[process],proc_mapping: Dict[int, Dict[int, int]],helper_qubit_list: List[int]) -> float:
+    """
+    Calculate the helper qubit cost for all processes in the batch given the mapping
+    This is defined as the total distance between data qubits and their nearest helper qubits, weighted by the helper qubit weight
+    """
+    helper_cost=0.0
+
+    if len(helper_qubit_list)==0:
+        return float('inf')
+
+
+    helpers = np.asarray(helper_qubit_list, dtype=int)
+
+
+    min_dist_to_helper = DIST_MATRIX[:, helpers].min(axis=1)
+
+    #Accumulate helper cost
+    helper_cost = 0.0
+    for proc in process_list:
+        pid = proc.get_process_id()
+        mapping = proc_mapping[pid]
+        topo = proc.get_topology()
+        num_data = proc.get_num_data_qubits()
+
+        for data_qubit in range(num_data):
+            helper_weight = topo.get_data_helper_weight(data_qubit)
+            if not helper_weight:
+                continue
+            phys = mapping[data_qubit]
+            helper_cost += helper_weight * min_dist_to_helper[phys]
+
+    return helper_cost
+
+
+
+
+def calculate_inter_cost_for_process(process_list: List[process],proc_mapping: Dict[int, Dict[int, int]]) -> float:
+    """
+    Calculate the inter-process cost for all processes in the batch given the mapping
+    The cost is defined as the distance between data qubits of different processes
+    """
+
+    #Precompute the list of physical qubits per process
+    #Don't look up the dict in the inner most loop
+    proc_ids: List[int] = []
+    proc_phys_lists: List[np.ndarray] = []
+
+    for proc in process_list:
+        pid = proc.get_process_id()
+        mapping = proc_mapping[pid]
+        num_data = proc.get_num_data_qubits()
+        #Create numpy array of phys indices in data-qubit order
+        phys_arr = np.fromiter([mapping[dq] for dq in range(num_data)], dtype=int, count=num_data)
+        proc_ids.append(pid)
+        proc_phys_lists.append(phys_arr)
+
+
+    inter_cost=0.0
+    n = len(process_list)
+
+    for i in range(n):
+        proc_i = proc_phys_lists[i]
+        if proc_i.size == 0:
+            continue
+
+        for j in range(i + 1, n):
+            proc_j = proc_phys_lists[j]
+            if proc_j.size == 0:
+                continue
+            # Compute pairwise distances between data qubits of proc_i and proc_j
+            sub = DIST_MATRIX[np.ix_(proc_i, proc_j)]
+            total_distance = float(sub.sum())
+            count = sub.size
+            if count > 0:
+                inter_cost += total_distance / count
+
+
+    return inter_cost
+
+
 
 def calculate_mapping_cost(process_list: List[process],mapping: Dict[int, tuple[int, int]]) -> float:
     """
@@ -133,85 +251,571 @@ def calculate_mapping_cost(process_list: List[process],mapping: Dict[int, tuple[
             cost = alpha * intro_cost - beta * inter_cost + gamma * helper_cost + delta * compact_cost
     """
 
-    # Initialize the helper qubit Zone
-    is_helper_qubit={phys:True for phys in range(N_qubits)}
-    for phys in mapping.keys():
-        is_helper_qubit[phys]=False
-    helper_qubit_list=[phys for phys in range(N_qubits) if is_helper_qubit[phys]]
-    #print("Helper qubit list:", helper_qubit_list)
 
-    #Convert the mapping L to the mapping per process
-    proc_mapping={pid:{} for pid in [proc.get_process_id() for proc in process_list]}
+    used_phys = set(mapping.keys())
+    helper_qubit_list=[phys for phys in range(N_qubits) if phys not in used_phys]
+
+
+    #----Convert to per-process mapping format----
+    proc_mapping: Dict[int, Dict[int, int]] = {pid:{} for pid in [proc.get_process_id() for proc in process_list]}
     for phys,(pid,data_qubit) in mapping.items():
         proc_mapping[pid][data_qubit]=phys
 
 
-    intro_cost=0.0
-    #First step, calculate the intra cost of all process
-    for proc in process_list:
-        intro_cost+=proc.intro_costs(proc_mapping[proc.get_process_id()],hardware_distance_pair)
+    intro_cost = calculate_intro_cost_for_process(process_list,proc_mapping)
+    inter_cost = calculate_inter_cost_for_process(process_list,proc_mapping)
+    helper_cost= calculate_helper_cost_for_process(process_list,proc_mapping,helper_qubit_list)
 
 
-    #print("Intro cost:", intro_cost)
+    return alpha * intro_cost - beta * inter_cost + gamma * helper_cost
 
+class MappingCostState:
+    """
+    FULL general incremental cost engine supporting ALL local changes:
+    - swap
+    - move to helper
+    - move back from helper
+    - reassign arbitrary phys
 
-    compact_cost=0.0
-    #Second step, calculate the compact cost of all process
-    #This is defined as the distance between the furthest data qubits of a process
-    for proc in process_list:
-        max_distance=0.0
-        for data_qubit_i in range(proc.get_num_data_qubits()):
-            phys_i=proc_mapping[proc.get_process_id()][data_qubit_i]
-            for data_qubit_j in range(data_qubit_i+1,proc.get_num_data_qubits()):
-                phys_j=proc_mapping[proc.get_process_id()][data_qubit_j]
-                max_distance=max(max_distance,hardware_distance_pair[phys_i][phys_j])
-        compact_cost+=max_distance
+    Normalized components:
+      intro_norm   ~ [0, 1]   (intra-process layout cost)
+      inter_norm   ~ [0, 1]   (mean distance between processes)
+      helper_norm  ~ [0, 1]   (data→helper distances, weighted)
+      compact_norm ~ [0, 1]   (cluster tightness per process)
+      path_norm    ~ [0, 1]   (NEW: foreign qubits along shortest paths)
 
+    Total cost:
+      cost = alpha * intro_norm
+           - beta  * inter_norm
+           + gamma * helper_norm
+           + delta * compact_norm
+           + eps   * path_norm
+    """
 
+    def __init__(self, process_list, mapping, n_qubits, dist_matrix):
+        self.process_list = process_list
+        self.n_qubits = n_qubits
+        self.dist = dist_matrix
 
-    inter_cost=0.0
-    #First step, calculate the inter cost across all processes
-    #This is done by calculatin the average distance between all mapped data qubits of two processes 
-    for i in range(len(process_list)):
-        for j in range(i+1,len(process_list)):
-            proc_i=process_list[i]
-            proc_j=process_list[j]
-            pid_i=proc_i.get_process_id()
-            pid_j=proc_j.get_process_id()
-            total_distance=0.0
-            count=0
-            for data_qubit_i in range(proc_i.get_num_data_qubits()):
-                phys_i=proc_mapping[pid_i][data_qubit_i]
-                for data_qubit_j in range(proc_j.get_num_data_qubits()):
-                    phys_j=proc_mapping[pid_j][data_qubit_j]
-                    total_distance+=hardware_distance_pair[phys_i][phys_j]
-                    count+=1
-            if count>0:
-                inter_cost+=total_distance/count
+        # phys -> (pid, dq)
+        self.mapping = dict(mapping)
 
+        # Process metadata
+        self.pid_to_proc = {p.get_process_id(): p for p in process_list}
+        self.pids = [p.get_process_id() for p in process_list]
+        self.num_proc = len(self.pids)
 
-    #print("Inter cost:", inter_cost)
+        # Logical→physical per process
+        self.proc_mapping = {pid: {} for pid in self.pids}
+        for phys, (pid, dq) in self.mapping.items():
+            self.proc_mapping[pid][dq] = phys
 
+        # Used vs helper phys
+        used_mask = np.zeros(n_qubits, dtype=bool)
+        for phys in self.mapping:
+            used_mask[phys] = True
+        self.used_mask = used_mask
+        self.helper_mask = ~used_mask
+        self.helper_qubits = np.where(self.helper_mask)[0]
 
-    helper_cost=0.0
-    #Last step, calculate the helper cost of all process
-    #This is done by calculating the weighted distance from data qubits to unmapped helper qubit Zone
-    for proc in process_list:
-        for data_qubit in range(proc.get_num_data_qubits()):
-            phys=proc_mapping[proc.get_process_id()][data_qubit]
-            helper_weight=proc.get_topology().get_data_helper_weight(data_qubit)
-            if helper_weight==0:
+        # Which process occupies each phys?  -1 means helper/unused
+        self.pid_at_phys = np.full(self.n_qubits, -1, dtype=int)
+        for phys, (pid, dq) in self.mapping.items():
+            self.pid_at_phys[phys] = pid
+
+        # Build adjacency & canonical shortest paths on the hardware graph
+        self._build_adjacency()
+        self._precompute_shortest_paths()
+
+        # Normalization bounds
+        self._init_normalization_bounds()
+
+        # Cost caches (unnormalized sums)
+        self.proc_intro_cost   = {}
+        self.proc_helper_cost  = {}
+        self.proc_compact_cost = {}
+        self.inter_cost_pair   = {}
+
+        self.sum_intro   = 0.0
+        self.sum_helper  = 0.0
+        self.sum_compact = 0.0
+        self.sum_inter   = 0.0
+
+        # NEW: path-conflict (unnormalized)
+        self.path_conflict_sum = 0.0
+
+        # Precompute helper distances for INITIAL state
+        self._compute_min_dist_to_helper()
+
+        # Initialize all pieces
+        self._init_process_costs()
+        self._init_inter_costs()
+        self._compute_path_conflict_full()
+
+    # ------------------------------------------------------------
+    # Adjacency + shortest paths on hardware graph
+    # ------------------------------------------------------------
+    def _build_adjacency(self):
+        """Adjacency list from dist == 1 (physical couplings)."""
+        self.adj = [[] for _ in range(self.n_qubits)]
+        for u in range(self.n_qubits):
+            neighs = np.where(self.dist[u] == 1)[0]
+            for v in neighs:
+                self.adj[u].append(v)
+
+    def _precompute_shortest_paths(self):
+        """
+        For every pair (u,v), u < v, store one canonical shortest path
+        as a list of vertices [u, ..., v].
+        """
+        from collections import deque
+
+        self.shortest_paths = {}
+        for s in range(self.n_qubits):
+            prev = [-1] * self.n_qubits
+            q = deque([s])
+            prev[s] = -2  # root marker
+
+            # BFS
+            while q:
+                u = q.popleft()
+                for v in self.adj[u]:
+                    if prev[v] == -1:
+                        prev[v] = u
+                        q.append(v)
+
+            # Recover paths s→t
+            for t in range(s + 1, self.n_qubits):
+                if prev[t] == -1:
+                    continue  # disconnected (shouldn't happen in your hardware)
+                path = []
+                cur = t
+                while cur != -2:
+                    path.append(cur)
+                    cur = prev[cur]
+                path.append(s)
+                path.reverse()
+                self.shortest_paths[(s, t)] = path
+
+    # ------------------------------------------------------------
+    # Normalization bounds
+    # ------------------------------------------------------------
+    def _init_normalization_bounds(self):
+        """
+        Compute heuristic upper bounds for intro, helper, inter, compact,
+        and path-conflict so we can normalize each term to ~[0,1].
+        """
+        max_dist = float(self.dist.max()) if self.dist.size > 0 else 1.0
+        self.max_dist = max_dist
+
+        # intro_max: complete graph over data qubits per process
+        intro_max = 0.0
+        for p in self.process_list:
+            d = p.get_num_data_qubits()
+            num_edges = d * (d - 1) / 2.0
+            intro_max += num_edges * max_dist
+        if intro_max <= 0.0:
+            intro_max = 1.0
+        self.intro_max = intro_max
+
+        # helper_max: total helper weight * max_dist
+        total_helper_weight = 0.0
+        for p in self.process_list:
+            topo = p.get_topology()
+            for dq in range(p.get_num_data_qubits()):
+                w = topo.get_data_helper_weight(dq)
+                if w:
+                    total_helper_weight += w
+        helper_max = total_helper_weight * max_dist
+        if helper_max <= 0.0:
+            helper_max = 1.0
+        self.helper_max = helper_max
+
+        # inter_max: mean distance between any two processes
+        self.inter_max = max_dist if self.num_proc > 1 else 1.0
+
+        # compact_max: each process has diameter ~max_dist
+        self.compact_max = self.num_proc * max_dist if self.num_proc > 0 else 1.0
+
+        # path_conflict_max: worst case every intermediate node is foreign
+        # for every pair of data qubits in each process.
+        max_intermediate = max(0.0, max_dist - 1.0)
+        path_max = 0.0
+        for p in self.process_list:
+            d = p.get_num_data_qubits()
+            num_pairs = d * (d - 1) / 2.0
+            path_max += num_pairs * max_intermediate
+        if path_max <= 0.0:
+            path_max = 1.0
+        self.path_conflict_max = path_max
+
+    # ------------------------------------------------------------
+    # Helper distances
+    # ------------------------------------------------------------
+    def _compute_min_dist_to_helper(self):
+        if self.helper_qubits.size > 0:
+            self.min_dist_to_helper = self.dist[:, self.helper_qubits].min(axis=1)
+        else:
+            self.min_dist_to_helper = np.zeros(self.n_qubits)
+
+    # ------------------------------------------------------------
+    # Compactness & initial process costs
+    # ------------------------------------------------------------
+    def _compute_compact_for_pid(self, pid):
+        """
+        Compactness cost for one process:
+          mean pairwise distance between all its data qubits.
+        """
+        proc = self.pid_to_proc[pid]
+        num_data = proc.get_num_data_qubits()
+        if num_data <= 1:
+            return 0.0
+
+        phys_arr = np.fromiter(
+            (self.proc_mapping[pid][dq] for dq in range(num_data)),
+            dtype=int,
+            count=num_data,
+        )
+        if phys_arr.size <= 1:
+            return 0.0
+
+        sub = self.dist[np.ix_(phys_arr, phys_arr)]
+        total = sub.sum()
+        n = phys_arr.size
+        num_pairs = n * (n - 1)  # each unordered pair counted twice
+        if num_pairs == 0:
+            return 0.0
+        return float(total / num_pairs)
+
+    def _init_process_costs(self):
+        for pid in self.pids:
+            proc = self.pid_to_proc[pid]
+            L = self.proc_mapping[pid]
+
+            # intro
+            intro = proc.intro_costs(L, self.dist)
+            self.proc_intro_cost[pid] = intro
+            self.sum_intro += intro
+
+            # helper
+            topo = proc.get_topology()
+            hcost = 0.0
+            for dq in range(proc.get_num_data_qubits()):
+                w = topo.get_data_helper_weight(dq)
+                if w == 0:
+                    continue
+                phys = L[dq]
+                hcost += w * self.min_dist_to_helper[phys]
+            self.proc_helper_cost[pid] = hcost
+            self.sum_helper += hcost
+
+            # compact
+            ccost = self._compute_compact_for_pid(pid)
+            self.proc_compact_cost[pid] = ccost
+            self.sum_compact += ccost
+
+    # ------------------------------------------------------------
+    # Inter-process distance
+    # ------------------------------------------------------------
+    def _init_inter_costs(self):
+        for i in range(self.num_proc):
+            pid_i = self.pids[i]
+            proc_i = self.pid_to_proc[pid_i]
+            phys_i = np.array(
+                [self.proc_mapping[pid_i][dq] for dq in range(proc_i.get_num_data_qubits())]
+            )
+
+            for j in range(i + 1, self.num_proc):
+                pid_j = self.pids[j]
+                proc_j = self.pid_to_proc[pid_j]
+                phys_j = np.array(
+                    [self.proc_mapping[pid_j][dq] for dq in range(proc_j.get_num_data_qubits())]
+                )
+
+                if phys_i.size == 0 or phys_j.size == 0:
+                    val = 0.0
+                else:
+                    sub = self.dist[np.ix_(phys_i, phys_j)]
+                    val = float(sub.mean())
+
+                self.inter_cost_pair[(pid_i, pid_j)] = val
+                self.sum_inter += val
+
+    # ------------------------------------------------------------
+    # Path-conflict (foreign qubits along shortest paths)
+    # ------------------------------------------------------------
+    def _compute_path_conflict_full(self):
+        """
+        Recompute path_conflict_sum from scratch.
+
+        For each process pid and each pair of its data-qubit physical
+        locations (u, v), we look up a precomputed shortest path.
+        We count intermediate vertices whose pid != pid and pid != -1.
+
+        Sum over all processes & pairs.
+        """
+        total = 0.0
+        for pid in self.pids:
+            proc = self.pid_to_proc[pid]
+            num_data = proc.get_num_data_qubits()
+            if num_data <= 1:
                 continue
-            min_helper_distance=10000
-            for helper_qubit in helper_qubit_list:
-                min_helper_distance=min(min_helper_distance,hardware_distance_pair[phys][helper_qubit])
-            helper_cost+=min_helper_distance*helper_weight
 
-    #print("Helper cost:", helper_cost)
+            phys_arr = [
+                self.proc_mapping[pid][dq] for dq in range(num_data)
+            ]
 
-    return alpha * intro_cost - beta * inter_cost + gamma * helper_cost + delta * compact_cost
+            for i in range(num_data):
+                u = phys_arr[i]
+                for j in range(i + 1, num_data):
+                    v = phys_arr[j]
+                    if u < v:
+                        key = (u, v)
+                    else:
+                        key = (v, u)
+                    path = self.shortest_paths.get(key, None)
+                    if path is None or len(path) <= 2:
+                        continue
+
+                    # skip endpoints; count foreign occupants in between
+                    for w in path[1:-1]:
+                        pid_w = self.pid_at_phys[w]
+                        if pid_w != -1 and pid_w != pid:
+                            total += 1.0
+
+        self.path_conflict_sum = total
+
+    # ------------------------------------------------------------
+    # Recompute helpers after a local change
+    # ------------------------------------------------------------
+    def _recompute_process(self, pid):
+        proc = self.pid_to_proc[pid]
+        L = self.proc_mapping[pid]
+
+        # intro
+        old_intro = self.proc_intro_cost[pid]
+        new_intro = proc.intro_costs(L, self.dist)
+        self.proc_intro_cost[pid] = new_intro
+        self.sum_intro += new_intro - old_intro
+
+        # helper
+        old_helper = self.proc_helper_cost[pid]
+        topo = proc.get_topology()
+        hcost = 0.0
+        for dq in range(proc.get_num_data_qubits()):
+            w = topo.get_data_helper_weight(dq)
+            if w == 0:
+                continue
+            phys = L[dq]
+            hcost += w * self.min_dist_to_helper[phys]
+        self.proc_helper_cost[pid] = hcost
+        self.sum_helper += hcost - old_helper
+
+        # compact
+        old_compact = self.proc_compact_cost[pid]
+        new_compact = self._compute_compact_for_pid(pid)
+        self.proc_compact_cost[pid] = new_compact
+        self.sum_compact += new_compact - old_compact
+
+    def _recompute_inter_for(self, pid_x, pid_y):
+        if pid_x == pid_y:
+            return
+        if pid_x < pid_y:
+            key = (pid_x, pid_y)
+        else:
+            key = (pid_y, pid_x)
+
+        old = self.inter_cost_pair[key]
+
+        proc_x = self.pid_to_proc[pid_x]
+        proc_y = self.pid_to_proc[pid_y]
+        phys_x = np.array(
+            [self.proc_mapping[pid_x][dq] for dq in range(proc_x.get_num_data_qubits())]
+        )
+        phys_y = np.array(
+            [self.proc_mapping[pid_y][dq] for dq in range(proc_y.get_num_data_qubits())]
+        )
+
+        if phys_x.size == 0 or phys_y.size == 0:
+            new = 0.0
+        else:
+            sub = self.dist[np.ix_(phys_x, phys_y)]
+            new = float(sub.mean())
+
+        self.inter_cost_pair[key] = new
+        self.sum_inter += new - old
+
+    # ------------------------------------------------------------
+    # GENERAL LOCAL MOVE: reassign
+    # ------------------------------------------------------------
+    def reassign(self, phys_src, phys_dst):
+        """
+        Move the data-qubit at phys_src to phys_dst.
+        If phys_dst was occupied, we perform a swap.
+        If phys_dst was helper, phys_src becomes helper afterwards.
+        """
+        src_pid, src_dq = self.mapping[phys_src]
+        dst_was_used = self.used_mask[phys_dst]
+
+        if dst_was_used:
+            # SWAP CASE
+            dst_pid, dst_dq = self.mapping[phys_dst]
+
+            # swap mapping
+            self.mapping[phys_src], self.mapping[phys_dst] = \
+                (dst_pid, dst_dq), (src_pid, src_dq)
+
+            self.proc_mapping[src_pid][src_dq] = phys_dst
+            self.proc_mapping[dst_pid][dst_dq] = phys_src
+
+            affected = {src_pid, dst_pid}
+
+        else:
+            # MOVE-TO-HELPER CASE
+            self.mapping[phys_dst] = (src_pid, src_dq)
+            del self.mapping[phys_src]
+
+            # update proc mapping
+            self.proc_mapping[src_pid][src_dq] = phys_dst
+
+            # update used/helper masks
+            self.used_mask[phys_src] = False
+            self.helper_mask[phys_src] = True
+            self.used_mask[phys_dst] = True
+            self.helper_mask[phys_dst] = False
+
+            self.helper_qubits = np.where(self.helper_mask)[0]
+            self._compute_min_dist_to_helper()
+
+            affected = {src_pid}
+
+        # recompute process costs (intro, helper, compact) for affected
+        for pid in affected:
+            self._recompute_process(pid)
+
+        # recompute intercost pairs
+        for pid in self.pids:
+            if pid in affected:
+                continue
+            for pid_x in affected:
+                self._recompute_inter_for(pid_x, pid)
+        if len(affected) == 2:
+            a, b = tuple(affected)
+            self._recompute_inter_for(a, b)
+
+        # update pid_at_phys from mapping
+        self.pid_at_phys[:] = -1
+        for phys, (pid, dq) in self.mapping.items():
+            self.pid_at_phys[phys] = pid
+
+        # and recompute global path-conflict
+        self._compute_path_conflict_full()
+
+    # ------------------------------------------------------------
+    # cost
+    # ------------------------------------------------------------
+    def get_cost(self):
+        """
+        Return normalized total cost.
+        """
+        intro_norm  = self.sum_intro   / self.intro_max
+        helper_norm = self.sum_helper  / self.helper_max
+        inter_norm  = self.sum_inter   / self.inter_max
+        compact_norm = self.sum_compact / self.compact_max
+        path_norm   = self.path_conflict_sum / self.path_conflict_max
+
+        return (
+            alpha * intro_norm
+            - beta  * inter_norm
+            + gamma * helper_norm
+            + delta * compact_norm
+            + eps   * path_norm
+        )
 
 
+
+# NEW: limit how far a move/swap can go on the hardware graph
+LOCAL_RADIUS = 2   # 1 = strictly nearest-neighbour, 2 = slightly more flexible
+
+def propose_move(
+    state: MappingCostState,
+    move_prob: float = 0.3,
+) -> Optional[Tuple[int, int, bool]]:
+    """
+    Propose a *local* move on the given MappingCostState.
+
+    Returns:
+        (phys_src, phys_dst, dst_was_used) or None if no move is possible.
+
+    Semantics:
+        - If dst_was_used == True: this is a SWAP between two mapped phys,
+          but ONLY within the same process and within LOCAL_RADIUS.
+        - If dst_was_used == False: this is MOVE-TO-HELPER: phys_src (used) -> phys_dst (helper),
+          and phys_dst must be within LOCAL_RADIUS of phys_src.
+
+    IMPORTANT:
+        - We NEVER swap qubits belonging to different processes.
+        - All motion is local (bounded by LOCAL_RADIUS in the hardware distance).
+    """
+    used_phys = list(state.mapping.keys())
+    num_used = len(used_phys)
+
+    if num_used == 0:
+        return None
+
+    helper_qubits = state.helper_qubits
+    has_helpers = helper_qubits.size > 0
+
+    # Pick a random source data qubit
+    phys_src = random.choice(used_phys)
+    src_pid, src_dq = state.mapping[phys_src]
+
+    # Precompute distances from src to all phys
+    d_from_src = state.dist[phys_src]
+
+    # --------------------------------------------------------
+    # Helper candidates: local helpers only
+    # --------------------------------------------------------
+    local_helpers = []
+    if has_helpers:
+        for h in helper_qubits:
+            if d_from_src[h] <= LOCAL_RADIUS:
+                local_helpers.append(int(h))
+
+    # --------------------------------------------------------
+    # Decide whether to attempt a move-to-helper or a swap
+    # --------------------------------------------------------
+    do_move = (len(local_helpers) > 0) and (random.random() < move_prob)
+
+    if do_move:
+        # ---- LOCAL MOVE TO HELPER ----
+        phys_dst = random.choice(local_helpers)
+        return phys_src, phys_dst, False
+
+    # --------------------------------------------------------
+    # LOCAL SWAP *within the same process* only
+    # --------------------------------------------------------
+    same_pid_local_targets: List[int] = []
+    for phys in used_phys:
+        if phys == phys_src:
+            continue
+        pid, dq = state.mapping[phys]
+        if pid != src_pid:
+            continue  # different process => forbidden
+        if d_from_src[phys] <= LOCAL_RADIUS:
+            same_pid_local_targets.append(phys)
+
+    if not same_pid_local_targets:
+        # No valid local swap partner; fall back to local move if possible
+        if local_helpers:
+            phys_dst = random.choice(local_helpers)
+            return phys_src, phys_dst, False
+        # No valid move at all
+        return None
+
+    # Do a local, intra-process swap
+    phys_dst = random.choice(same_pid_local_targets)
+    return phys_src, phys_dst, True
 
 
 def random_initial_mapping(process_list: List[process],
@@ -243,139 +847,193 @@ def greedy_initial_mapping(process_list: List[process],
                            n_qubits: int,
                            distance: List[List[int]]) -> Dict[int, tuple[int, int]]:
     """
-    Greedy placement:
-    - Place the very first data qubit of the first process on phys 0.
-    - For every next data qubit across all processes:
-         choose the unused physical qubit
-         that is closest to ANY already-used physical qubit.
-    Produces a compact cluster-like initial layout.
+    Greedy, *cluster-by-process* placement.
+
+    Strategy:
+    1) Choose one seed physical qubit per process.
+       - First process gets phys 0.
+       - Each subsequent process gets the unused phys that is farthest
+         (maximin distance) from all previously chosen seeds.
+       This spreads processes across the chip.
+
+    2) For each process, grow its own cluster around its seed:
+       - For each remaining data qubit of that process, pick the unused
+         physical qubit that is closest to *that process's existing cluster*
+         (not to the global cluster).
+       This keeps each process contiguous but avoids interleaving processes.
+
+    Remaining physical qubits are left unused (potential helper zone).
     """
     total_data_qubits = sum(p.get_num_data_qubits() for p in process_list)
     if total_data_qubits > n_qubits:
         raise ValueError("Not enough physical qubits for all data qubits")
 
+    # numpy distance matrix (n_qubits x n_qubits)
+    dist_mat = np.asarray(distance, dtype=float)
+
     mapping: Dict[int, tuple[int, int]] = {}
+    used_mask = np.zeros(n_qubits, dtype=bool)
 
-    # --- Step 1: place the very first data qubit onto physical qubit 0 ---
-    mapping[0] = (process_list[0].get_process_id(), 0)
+    # ------------------------------------------------------------
+    # Step 1: choose a "seed" phys for each process, far apart
+    # ------------------------------------------------------------
+    seeds: Dict[int, int] = {}
+    cluster_phys: Dict[int, List[int]] = {}
 
-    used_phys = {0}
-    remaining_phys = set(range(n_qubits)) - used_phys
+    for idx, proc in enumerate(process_list):
+        pid = proc.get_process_id()
 
-    # Iterator for (pid, data_qubit)
-    placement_list = []
+        if idx == 0:
+            # First process: seed at 0
+            seed_phys = 0
+        else:
+            # Other processes: pick the unused phys that maximizes
+            # distance to the set of existing seeds (maximin).
+            candidates = np.where(~used_mask)[0]
+            if candidates.size == 0:
+                raise ValueError("No free physical qubits left for new process seed.")
+
+            existing_seeds = np.fromiter(seeds.values(), dtype=int)
+            # distances from each candidate to nearest seed
+            # shape: (num_candidates, num_seeds) -> min over axis=1
+            cand_dists = dist_mat[np.ix_(candidates, existing_seeds)].min(axis=1)
+            # pick candidate with largest min distance to seeds
+            seed_idx = int(cand_dists.argmax())
+            seed_phys = int(candidates[seed_idx])
+
+        # Assign first data qubit (dq=0) of this process to the seed
+        mapping[seed_phys] = (pid, 0)
+        used_mask[seed_phys] = True
+        seeds[pid] = seed_phys
+        cluster_phys[pid] = [seed_phys]
+
+    # ------------------------------------------------------------
+    # Step 2: grow each process's cluster around its own seed
+    # ------------------------------------------------------------
     for proc in process_list:
         pid = proc.get_process_id()
-        for dq in range(proc.get_num_data_qubits()):
-            placement_list.append((pid, dq))
+        num_data = proc.get_num_data_qubits()
 
-    # We already placed first one, so skip it
-    placement_list = placement_list[1:]
+        # dq = 0 already placed at the seed
+        for dq in range(1, num_data):
+            # Current cluster for this process
+            cluster = np.array(cluster_phys[pid], dtype=int)
 
-    # --- Step 2: greedy expansion ---
-    for pid, dq in placement_list:
-        best_phys = None
-        best_score = float("inf")
+            # For every physical qubit, compute distance to this cluster
+            # (min distance to any qubit in the cluster)
+            dists_to_cluster = dist_mat[:, cluster].min(axis=1)
 
-        for phys in remaining_phys:
-            # distance to the closest used phys (cluster expansion)
-            dist_to_cluster = min(distance[phys][u] for u in used_phys)
-            if dist_to_cluster < best_score:
-                best_score = dist_to_cluster
-                best_phys = phys
+            # Can't reuse occupied qubits
+            dists_to_cluster = np.where(used_mask, float("inf"), dists_to_cluster)
 
-        # Assign the chosen physical location
-        mapping[best_phys] = (pid, dq)
+            best_phys = int(dists_to_cluster.argmin())
+            if not np.isfinite(dists_to_cluster[best_phys]):
+                raise ValueError("No available physical site found during greedy mapping.")
 
-        # Update sets
-        used_phys.add(best_phys)
-        remaining_phys.remove(best_phys)
+            mapping[best_phys] = (pid, dq)
+            used_mask[best_phys] = True
+            cluster_phys[pid].append(best_phys)
+
+    # ------------------------------------------------------------
+    # Optional: visualize the initial territories
+    # ------------------------------------------------------------
+    plot_process_schedule_on_torino(
+        coupling_edges=torino_coupling_map(),
+        process_list=process_list,
+        mapping=mapping,
+        out_png="greedy_initial.png",
+    )
 
     return mapping
 
-def propose_neighbor(mapping: Dict[int, tuple[int, int]],
-                     n_qubits: int,
-                     move_prob: float = 0.3) -> Dict[int, tuple[int, int]]:
-    """
-    Given a mapping, return a new mapping by either:
-    - Swapping two mapped physical qubits, or
-    - Moving a data qubit to a helper location.
-    """
-    new_mapping = dict(mapping)  # shallow copy is enough
-
-    used_phys = list(new_mapping.keys())
-    all_phys = list(range(n_qubits))
-    helper_phys = [p for p in all_phys if p not in used_phys]
-
-    # If we have no helper qubits, we can only swap.
-    if not helper_phys or random.random() > move_prob:
-        # swap two mapped physical locations
-        if len(used_phys) < 2:
-            return new_mapping
-        a, b = random.sample(used_phys, 2)
-        new_mapping[a], new_mapping[b] = new_mapping[b], new_mapping[a]
-    else:
-        # move one data qubit to a helper physical qubit
-        a = random.choice(used_phys)
-        h = random.choice(helper_phys)
-        new_mapping[h] = new_mapping[a]
-        del new_mapping[a]
-
-    return new_mapping
 
 
 
-def iteratively_find_the_best_mapping_for_data(process_list: List[process],
-                                      n_qubits: int,
-                                      n_restarts: int = 5,
-                                      steps_per_restart: int = 2000
-                                      ) -> Dict[int, tuple[int, int]]:
+def iteratively_find_the_best_mapping_for_data(
+    process_list: List[process],
+    n_qubits: int,
+    n_restarts: int = 100,
+    steps_per_restart: int = 500,
+    move_prob: float = 0.3,
+) -> Dict[int, Tuple[int, int]]:
     """
     Heuristic search for a good mapping using simulated annealing
     with multiple random restarts.
 
-    Returns the best mapping found.
+    This version uses MappingCostState to maintain the cost incrementally.
+    Local moves:
+      - swap two mapped physical qubits
+      - move a mapped qubit to a helper qubit (changing helper zone)
     """
-    global_best_mapping = None
+    global_best_mapping: Optional[Dict[int, Tuple[int, int]]] = None
     global_best_cost = float("inf")
 
-    for r in range(n_restarts):
-        # 1) random initial mapping
-        # current_mapping = random_initial_mapping(process_list, n_qubits)
-        current_mapping = greedy_initial_mapping(process_list, n_qubits,hardware_distance_pair)
-        current_cost = calculate_mapping_cost(process_list, current_mapping)
+    # Geometric cooling rate: smaller -> more aggressive cooling
+    cooling_rate = 0.995  # try 0.99 if you want even more aggressive cooling
 
-        # temperature schedule (very simple linear cooling)
-        # scale the initial T with magnitude of the cost to get something reasonable
+    for r in range(n_restarts):
+        # 1) Greedy initial mapping (already reasonably compact)
+        init_mapping = greedy_initial_mapping(
+            process_list, n_qubits, hardware_distance_pair
+        )
+
+        # 2) Build incremental cost state
+        state = MappingCostState(process_list, init_mapping, n_qubits, DIST_MATRIX)
+        current_cost = state.get_cost()
+
+        # Initial temperature scaled to cost magnitude
         T0 = max(1.0, abs(current_cost) * 0.1)
 
         for step in range(steps_per_restart):
-            # temperature decreases over time
-            t = step / max(1, steps_per_restart - 1)
-            T = T0 * (1.0 - t) + 1e-3  # from T0 -> ~0
+            # Geometric cooling schedule
+            T = T0 * (cooling_rate ** step) + 1e-9  # avoid T == 0
 
-            # 2) propose a neighbor and compute its cost
-            candidate_mapping = propose_neighbor(current_mapping, n_qubits)
-            candidate_cost = calculate_mapping_cost(process_list, candidate_mapping)
+            # 3) Propose a local move
+            move = propose_move(state, move_prob=move_prob)
+            if move is None:
+                # No valid move (should be very rare)
+                break
 
-            delta = candidate_cost - current_cost
+            phys_src, phys_dst, dst_was_used = move
 
-            # 3) acceptance rule (simulated annealing)
-            if delta < 0 or math.exp(-delta / T) > random.random():
-                current_mapping = candidate_mapping
-                current_cost = candidate_cost
+            old_cost = current_cost
 
-                # track global best
-                if current_cost < global_best_cost:
-                    global_best_cost = current_cost
-                    global_best_mapping = current_mapping
+            # 4) Apply move
+            state.reassign(phys_src, phys_dst)
+            new_cost = state.get_cost()
+            delta = new_cost - old_cost
+
+            # 5) Acceptance rule (simulated annealing)
+            if delta <= 0:
+                accept = True
+            else:
+                accept = math.exp(-delta / T) > random.random()
+
+            if accept:
+                current_cost = new_cost
+
+                # Update global best
+                if new_cost < global_best_cost:
+                    global_best_cost = new_cost
+                    # Copy the current mapping (phys -> (pid, dq))
+                    global_best_mapping = dict(state.mapping)
+            else:
+                # 6) Reject: revert the move
+                if dst_was_used:
+                    # Swap again restores original
+                    state.reassign(phys_src, phys_dst)
+                else:
+                    # Move-to-helper was src->dst; revert by dst->src
+                    state.reassign(phys_dst, phys_src)
+                # current_cost stays old_cost
 
         print(f"[Restart {r}] best so far: {global_best_cost}")
 
     print("Final best cost:", global_best_cost)
+    if global_best_mapping is None:
+        # Should not happen unless there were no valid mappings
+        raise RuntimeError("No valid mapping found during annealing.")
     return global_best_mapping
-
-
 
 
 def iteratively_find_the_best_mapping_for_all(process_list: List[process],
@@ -1429,7 +2087,6 @@ def generate_process_from_benchmark(benchmark_id: int, pid: int, shots: int, sha
     (inst_list, data_n, syn_n, measure_n)=parse_program_from_file(file_path)
     proc = process(pid, data_n, syn_n, shots, inst_list)
     return proc
-
 
 
 
