@@ -24,29 +24,124 @@ import logging
 logging.getLogger("qiskit_ibm_runtime").setLevel(logging.ERROR)
 
 
-benchmark_suit_file_root_no_helper="benchmarkdata//"
 
-benchmark_suit_file_root="benchmark//"
-benchmark_suit={
-    0:"cat_state_prep_n4",
-    1:"cat_state_verification_n4",
-    2:"repetition_code_distance3_n3",
-    3:"shor_parity_measurement_n4",
-    4:"shor_stabilizer_XZZX_n3",
-    5:"shor_stabilizer_ZZZZ_n4",
-    6:"syndrome_extraction_surface_n4"
+class benchmarktype(Enum):
+    RANDOM = 1
+    MULTI_CONTROLLED_X_SMALL = 2
+    MULTI_CONTROLLED_X_MEDUIM = 3
+    STABILIZER_MEASUREMENT_SMALL =4
+    STABILIZER_MEASUREMENT_MEDUIM =5
+    CLASSICAL_LOGIC_SMALL =6
+    CLASSICAL_LOGIC_MEDUIM = 7
+    LCU_SMALL =8
+    LCU_MEDUIM =9
+    MIX_SMALL = 10
+    MIX_MEDUIM = 11
+
+
+
+benchmark_file_path={
+    benchmarktype.MULTI_CONTROLLED_X_SMALL:"benchmarkdata//multiXsmall//",
+    benchmarktype.MULTI_CONTROLLED_X_MEDUIM:"benchmarkdata//multiXmeduim//",
+    benchmarktype.STABILIZER_MEASUREMENT_SMALL:"benchmarkdata//qecsmall//",
+    benchmarktype.STABILIZER_MEASUREMENT_MEDUIM:"benchmarkdata//qecmeduim//",
+    benchmarktype.CLASSICAL_LOGIC_SMALL:"benchmarkdata//arithsmall//",
+    benchmarktype.CLASSICAL_LOGIC_MEDUIM:"benchmarkdata//arithmeduim//",
+    benchmarktype.LCU_SMALL:"benchmarkdata//hamsimsmall//",
+    benchmarktype.LCU_MEDUIM:"benchmarkdata//hamsimmeduim//",
 }
 
 
 
+qec_small_benchmark={
+    0: "cat_state_prep_n4",
+    1: "cat_state_verification_n4",
+    2: "repetition_code_distance3_n3",
+    3: "shor_parity_measurement_n4",
+    4: "shor_stabilizer_XZZX_n3",
+    5: "shor_stabilizer_ZZZZ_n4",
+    6: "syndrome_extraction_surface_n4"
+}
 
 
-class benchmarktype(Enum):
-    RANDOM = 1
-    MULTI_CONTROLLED_X = 2
-    STABILIZER_MEASUREMENT =3
-    CLASSICAL_LOGIC =4
-    LCU=5
+qec_meduim_benchmark={
+    0: "cat_state_prep_n7",
+    1: "cat_state_verification_n7",
+    2: "repetition_code_distance5_n5",
+    3: "shor_parity_measurement_n7",
+    4: "shor_stabilizer_XZZX_n5",
+    5: "shor_stabilizer_ZZZZZZ_n6",
+    6: "syndrome_extraction_surface_n9"
+}
+
+
+multix_small_benchmark={
+    0:"multiX_3_1",
+    1:"multiX_4_1",
+    2:"multiX_5_1",
+    3:"multiX_6_1",
+    4:"multiX_7_1",
+    5:"multiX_8_1",
+}
+
+
+multix_medium_benchmark={
+    0:"multiX_3_2",
+    1:"multiX_4_2",
+    2:"multiX_5_2",
+    3:"multiX_6_2",
+    4:"multiX_7_2",
+    5:"multiX_8_2",
+}
+
+
+classical_logic_small_benchmark={
+    0:"adder_5bit",
+    1:"multiplier_3bit",
+    2:"comparator_4bit",
+    3:"subtracter_5bit",
+    4:"divider_4bit",
+    5:"modulo_4bit",
+}
+
+
+classical_logic_medium_benchmark={
+    0:"adder_10bit",
+    1:"multiplier_5bit",
+    2:"comparator_8bit",
+    3:"subtracter_10bit",
+    4:"divider_8bit",
+    5:"modulo_8bit",
+}
+
+
+hamilsim_small_benchmark={
+    0:"hamilsim_4q_2terms",
+    1:"hamilsim_6q_3terms",
+    2:"hamilsim_8q_4terms",
+    3:"hamilsim_10q_5terms",
+}
+
+
+hamilsim_medium_benchmark={
+    0:"hamilsim_6q_4terms",
+    1:"hamilsim_8q_6terms",
+    2:"hamilsim_10q_8terms",
+    3:"hamilsim_12q_10terms"
+}
+
+
+benchmark_type_to_benchmark={
+    benchmarktype.MULTI_CONTROLLED_X_SMALL: multix_small_benchmark,
+    benchmarktype.MULTI_CONTROLLED_X_MEDUIM: multix_medium_benchmark,
+    benchmarktype.STABILIZER_MEASUREMENT_SMALL: qec_small_benchmark,
+    benchmarktype.STABILIZER_MEASUREMENT_MEDUIM: qec_meduim_benchmark,
+    benchmarktype.CLASSICAL_LOGIC_SMALL: classical_logic_small_benchmark,
+    benchmarktype.CLASSICAL_LOGIC_MEDUIM: classical_logic_medium_benchmark,
+    benchmarktype.LCU_SMALL: hamilsim_small_benchmark,
+    benchmarktype.LCU_MEDUIM: hamilsim_medium_benchmark,
+}
+
 
 
 
@@ -89,13 +184,15 @@ def distribution_fidelity(dist1: dict, dist2: dict) -> float:
 
 
 
-
-def load_ideal_count_output(benchmark_id: int) -> Dict[str, int]:
+def load_ideal_count_output(benchmark_type:benchmarktype, benchmark_id: int) -> Dict[str, int]:
     """
     Load the ideal count output from the benchmark suit file
     """
-    filename = benchmark_suit_file_root + "result2000shots//"+ benchmark_suit[benchmark_id] + "_counts.pkl"
-    with open(filename, 'rb') as f:
+    fileroot=benchmark_file_path[benchmark_type]
+    benchmark_dict= benchmark_type_to_benchmark[benchmark_type]
+    filename=benchmark_dict[benchmark_id]
+    filename_full = fileroot +"result2000shots//"+ filename + "_counts.pkl"
+    with open(filename_full, 'rb') as f:
         ideal_counts = pickle.load(f)
     return ideal_counts
 
@@ -117,7 +214,7 @@ eps = 0.3
 
 #Set the scheduling option here
 Scheduling_Option=SchedulingOptions.HALO
-benchmark_Option=benchmarktype.MULTI_CONTROLLED_X
+benchmark_Option=benchmarktype.STABILIZER_MEASUREMENT_SMALL
 
 
 # N_qubits=133
@@ -2048,9 +2145,15 @@ def random_arrival_generator(scheduler: haloScheduler,
     """
     Producer thread: generate processes according to a Poisson process
     (exponential inter-arrival times with mean 1/arrival_rate).
+
+    All processes are generated from one benchmark suit if the option is not mixed.
+
+    TODO: Support mixed benchmark suit in the future. Just need to randomly select a benchmark suit for each arrival.
     """
     start = time.time()
     pid = 0
+    benchmark_suit = benchmark_type_to_benchmark[benchmark_Option]
+    benchmark_root_path = benchmark_file_path[benchmark_Option]
     while time.time() - start < max_time:
         # Wait random time until next arrival
         wait = random.expovariate(arrival_rate)  # mean 1/lambda
@@ -2062,7 +2165,7 @@ def random_arrival_generator(scheduler: haloScheduler,
         shots = 1000
         #Generate a random process from benchmark suit
         benchmark_id = random.randint(0, len(benchmark_suit) - 1)
-        proc = generate_process_from_benchmark(benchmark_id, pid, shots, share_qubit=share_qubit)
+        proc = generate_process_from_benchmark(benchmark_root_path, benchmark_suit, benchmark_id, pid, shots, share_qubit=share_qubit)
         print(f"[ARRIVAL] New process {benchmark_suit[benchmark_id]} arriving, pid: {pid}, shots: {shots}")
         scheduler.add_process(proc, source_id=benchmark_id)
         pid += 1
@@ -2072,7 +2175,7 @@ def random_arrival_generator(scheduler: haloScheduler,
 
 
 
-def generate_process_from_benchmark(benchmark_id: int, pid: int, shots: int, share_qubit=True) -> process:
+def generate_process_from_benchmark(benchmark_root_path:str,benchmark_suit: Dict[int,str], benchmark_id: int, pid: int, shots: int, share_qubit=True) -> process:
     """
     Generate a process from the benchmark suit, given the pid and shots
     1. Load the benchmark data from the file
@@ -2080,14 +2183,13 @@ def generate_process_from_benchmark(benchmark_id: int, pid: int, shots: int, sha
     3. Return the process instance
     """
     if not share_qubit:
-        file_path = f"{benchmark_suit_file_root_no_helper}{benchmark_suit[benchmark_id]}"
+        file_path = f"{benchmark_root_path}nohelper//{benchmark_suit[benchmark_id]}"
     else:
-        file_path = f"{benchmark_suit_file_root}{benchmark_suit[benchmark_id]}"
+        file_path = f"{benchmark_root_path}{benchmark_suit[benchmark_id]}"
     # Load the benchmark data from the file
     (inst_list, data_n, syn_n, measure_n)=parse_program_from_file(file_path)
     proc = process(pid, data_n, syn_n, shots, inst_list)
     return proc
-
 
 
 
