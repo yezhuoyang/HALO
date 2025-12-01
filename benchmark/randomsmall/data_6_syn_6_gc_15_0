@@ -1,0 +1,24 @@
+q = alloc_data(6)
+s = alloc_helper(6)
+Tdg s1
+T s2
+c0 = MEASURE s1
+deallocate_helper(s1)
+c1 = MEASURE s2
+deallocate_helper(s2)
+Y s5
+c2 = MEASURE s5
+deallocate_helper(s5)
+c3 = MEASURE s0
+deallocate_helper(s0)
+H q4
+S q3
+CP(1.2493338053084568) q1, q5
+c4 = MEASURE s3
+deallocate_helper(s3)
+Sdg q3
+c5 = MEASURE s4
+deallocate_helper(s4)
+H q4
+CNOT q2, q0
+deallocate_data(q)

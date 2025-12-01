@@ -1,0 +1,37 @@
+q = alloc_data(4)
+X q0
+X q1
+H q3
+CNOT q1, q3
+Tdg q3
+CNOT q0, q3
+T q3
+CNOT q1, q3
+Tdg q3
+CNOT q0, q3
+T q1
+T q3
+H q3
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+CNOT q3, q2
+H q3
+CNOT q1, q3
+Tdg q3
+CNOT q0, q3
+T q3
+CNOT q1, q3
+Tdg q3
+CNOT q0, q3
+T q1
+T q3
+H q3
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+c0 = MEASURE q0
+c1 = MEASURE q1
+deallocate_data(q)

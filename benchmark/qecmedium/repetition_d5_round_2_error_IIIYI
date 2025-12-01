@@ -1,0 +1,102 @@
+q = alloc_data(5)
+s = alloc_helper(10)
+Y q3
+H s0
+H q0
+CNOT s0, q0
+H q0
+H q1
+CNOT s0, q1
+H q1
+H s0
+c0 = MEASURE s0
+deallocate_helper(s0)
+H s1
+H q1
+CNOT s1, q1
+H q1
+H q2
+CNOT s1, q2
+H q2
+H s1
+c1 = MEASURE s1
+deallocate_helper(s1)
+H s2
+H q2
+CNOT s2, q2
+H q2
+H q3
+CNOT s2, q3
+H q3
+H s2
+c2 = MEASURE s2
+deallocate_helper(s2)
+H s3
+H q3
+CNOT s3, q3
+H q3
+H q4
+CNOT s3, q4
+H q4
+H s3
+c3 = MEASURE s3
+deallocate_helper(s3)
+H s4
+CNOT s4, q0
+CNOT s4, q1
+CNOT s4, q2
+CNOT s4, q3
+CNOT s4, q4
+H s4
+c4 = MEASURE s4
+deallocate_helper(s4)
+H s5
+H q0
+CNOT s5, q0
+H q0
+H q1
+CNOT s5, q1
+H q1
+H s5
+c5 = MEASURE s5
+deallocate_helper(s5)
+H s6
+H q1
+CNOT s6, q1
+H q1
+H q2
+CNOT s6, q2
+H q2
+H s6
+c6 = MEASURE s6
+deallocate_helper(s6)
+H s7
+H q2
+CNOT s7, q2
+H q2
+H q3
+CNOT s7, q3
+H q3
+H s7
+c7 = MEASURE s7
+deallocate_helper(s7)
+H s8
+H q3
+CNOT s8, q3
+H q3
+H q4
+CNOT s8, q4
+H q4
+H s8
+c8 = MEASURE s8
+deallocate_helper(s8)
+H s9
+CNOT s9, q0
+CNOT s9, q1
+CNOT s9, q2
+CNOT s9, q3
+CNOT s9, q4
+H s9
+c9 = MEASURE s9
+deallocate_helper(s9)
+deallocate_data(q)

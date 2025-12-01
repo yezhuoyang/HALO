@@ -1,0 +1,75 @@
+q = alloc_data(12)
+Y q1
+H q3
+H q0
+CNOT q3, q0
+H q0
+H q1
+CNOT q3, q1
+H q1
+H q3
+c0 = MEASURE q3
+H q4
+H q1
+CNOT q4, q1
+H q1
+H q2
+CNOT q4, q2
+H q2
+H q4
+c1 = MEASURE q4
+H q5
+CNOT q5, q0
+CNOT q5, q1
+CNOT q5, q2
+H q5
+c2 = MEASURE q5
+H q6
+H q0
+CNOT q6, q0
+H q0
+H q1
+CNOT q6, q1
+H q1
+H q6
+c3 = MEASURE q6
+H q7
+H q1
+CNOT q7, q1
+H q1
+H q2
+CNOT q7, q2
+H q2
+H q7
+c4 = MEASURE q7
+H q8
+CNOT q8, q0
+CNOT q8, q1
+CNOT q8, q2
+H q8
+c5 = MEASURE q8
+H q9
+H q0
+CNOT q9, q0
+H q0
+H q1
+CNOT q9, q1
+H q1
+H q9
+c6 = MEASURE q9
+H q10
+H q1
+CNOT q10, q1
+H q1
+H q2
+CNOT q10, q2
+H q2
+H q10
+c7 = MEASURE q10
+H q11
+CNOT q11, q0
+CNOT q11, q1
+CNOT q11, q2
+H q11
+c8 = MEASURE q11
+deallocate_data(q)

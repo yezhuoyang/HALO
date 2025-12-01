@@ -1,0 +1,135 @@
+q = alloc_data(19)
+Y q3
+H q7
+CNOT q7, q0
+CNOT q7, q1
+CNOT q7, q2
+CNOT q7, q3
+H q7
+c0 = MEASURE q7
+H q8
+CNOT q8, q0
+CNOT q8, q1
+CNOT q8, q4
+CNOT q8, q5
+H q8
+c1 = MEASURE q8
+H q9
+CNOT q9, q0
+CNOT q9, q2
+CNOT q9, q4
+CNOT q9, q6
+H q9
+c2 = MEASURE q9
+H q10
+H q0
+CNOT q10, q0
+H q0
+H q1
+CNOT q10, q1
+H q1
+H q2
+CNOT q10, q2
+H q2
+H q3
+CNOT q10, q3
+H q3
+H q10
+c3 = MEASURE q10
+H q11
+H q0
+CNOT q11, q0
+H q0
+H q1
+CNOT q11, q1
+H q1
+H q4
+CNOT q11, q4
+H q4
+H q5
+CNOT q11, q5
+H q5
+H q11
+c4 = MEASURE q11
+H q12
+H q0
+CNOT q12, q0
+H q0
+H q2
+CNOT q12, q2
+H q2
+H q4
+CNOT q12, q4
+H q4
+H q6
+CNOT q12, q6
+H q6
+H q12
+c5 = MEASURE q12
+H q13
+CNOT q13, q0
+CNOT q13, q1
+CNOT q13, q2
+CNOT q13, q3
+H q13
+c6 = MEASURE q13
+H q14
+CNOT q14, q0
+CNOT q14, q1
+CNOT q14, q4
+CNOT q14, q5
+H q14
+c7 = MEASURE q14
+H q15
+CNOT q15, q0
+CNOT q15, q2
+CNOT q15, q4
+CNOT q15, q6
+H q15
+c8 = MEASURE q15
+H q16
+H q0
+CNOT q16, q0
+H q0
+H q1
+CNOT q16, q1
+H q1
+H q2
+CNOT q16, q2
+H q2
+H q3
+CNOT q16, q3
+H q3
+H q16
+c9 = MEASURE q16
+H q17
+H q0
+CNOT q17, q0
+H q0
+H q1
+CNOT q17, q1
+H q1
+H q4
+CNOT q17, q4
+H q4
+H q5
+CNOT q17, q5
+H q5
+H q17
+c10 = MEASURE q17
+H q18
+H q0
+CNOT q18, q0
+H q0
+H q2
+CNOT q18, q2
+H q2
+H q4
+CNOT q18, q4
+H q4
+H q6
+CNOT q18, q6
+H q6
+H q18
+c11 = MEASURE q18
+deallocate_data(q)

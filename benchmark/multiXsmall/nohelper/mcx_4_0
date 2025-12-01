@@ -1,0 +1,97 @@
+q = alloc_data(8)
+H q5
+CNOT q1, q5
+Tdg q5
+CNOT q0, q5
+T q5
+CNOT q1, q5
+Tdg q5
+CNOT q0, q5
+T q1
+T q5
+H q5
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+H q6
+CNOT q5, q6
+Tdg q6
+CNOT q2, q6
+T q6
+CNOT q5, q6
+Tdg q6
+CNOT q2, q6
+T q5
+T q6
+H q6
+CNOT q2, q5
+T q2
+Tdg q5
+CNOT q2, q5
+H q7
+CNOT q6, q7
+Tdg q7
+CNOT q3, q7
+T q7
+CNOT q6, q7
+Tdg q7
+CNOT q3, q7
+T q6
+T q7
+H q7
+CNOT q3, q6
+T q3
+Tdg q6
+CNOT q3, q6
+CNOT q7, q4
+H q7
+CNOT q6, q7
+Tdg q7
+CNOT q3, q7
+T q7
+CNOT q6, q7
+Tdg q7
+CNOT q3, q7
+T q6
+T q7
+H q7
+CNOT q3, q6
+T q3
+Tdg q6
+CNOT q3, q6
+H q6
+CNOT q5, q6
+Tdg q6
+CNOT q2, q6
+T q6
+CNOT q5, q6
+Tdg q6
+CNOT q2, q6
+T q5
+T q6
+H q6
+CNOT q2, q5
+T q2
+Tdg q5
+CNOT q2, q5
+H q5
+CNOT q1, q5
+Tdg q5
+CNOT q0, q5
+T q5
+CNOT q1, q5
+Tdg q5
+CNOT q0, q5
+T q1
+T q5
+H q5
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+c0 = MEASURE q0
+c1 = MEASURE q1
+c2 = MEASURE q2
+c3 = MEASURE q3
+deallocate_data(q)

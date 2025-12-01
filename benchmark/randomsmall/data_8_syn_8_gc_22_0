@@ -1,0 +1,33 @@
+q = alloc_data(8)
+s = alloc_helper(8)
+c0 = MEASURE q4
+CNOT q1, s1
+c1 = MEASURE s4
+deallocate_helper(s4)
+c2 = MEASURE s6
+deallocate_helper(s6)
+c3 = MEASURE s7
+deallocate_helper(s7)
+c4 = MEASURE s1
+deallocate_helper(s1)
+H s3
+S s2
+c5 = MEASURE q0
+c6 = MEASURE s3
+deallocate_helper(s3)
+c7 = MEASURE s5
+deallocate_helper(s5)
+SX q1
+U(2.1378570461461117, 0.9769065087850171, 6.01434711112988) s0 
+c8 = MEASURE s2
+deallocate_helper(s2)
+T q1
+U3(2.2555339690414473, 2.1611375418002106, 1.6620336263717548) q1 
+X q5
+CH q3, q1
+c9 = MEASURE s0
+deallocate_helper(s0)
+Y q3
+RZ(3.886274220255387) q5 
+RY(1.2081848450389212) q3 
+deallocate_data(q)

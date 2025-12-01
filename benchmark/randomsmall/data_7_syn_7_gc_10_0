@@ -1,0 +1,20 @@
+q = alloc_data(7)
+s = alloc_helper(7)
+T s3
+c0 = MEASURE q4
+c1 = MEASURE s5
+deallocate_helper(s5)
+c2 = MEASURE s3
+deallocate_helper(s3)
+c3 = MEASURE s0
+deallocate_helper(s0)
+H q6
+c4 = MEASURE s6
+deallocate_helper(s6)
+c5 = MEASURE s4
+deallocate_helper(s4)
+c6 = MEASURE s2
+deallocate_helper(s2)
+c7 = MEASURE s1
+deallocate_helper(s1)
+deallocate_data(q)

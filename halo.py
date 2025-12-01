@@ -26,7 +26,8 @@ logging.getLogger("qiskit_ibm_runtime").setLevel(logging.ERROR)
 
 
 class benchmarktype(Enum):
-    RANDOM = 1
+    RANDOM_SMALL = 0
+    RANDOM_MEDIUM = 1
     MULTI_CONTROLLED_X_SMALL = 2
     MULTI_CONTROLLED_X_MEDUIM = 3
     STABILIZER_MEASUREMENT_SMALL =4
@@ -41,6 +42,8 @@ class benchmarktype(Enum):
 
 
 benchmark_file_path={
+    benchmarktype.RANDOM_SMALL:"benchmarkdata//randomsmall//",
+    benchmarktype.RANDOM_MEDIUM:"benchmarkdata//randommeduim//",
     benchmarktype.MULTI_CONTROLLED_X_SMALL:"benchmarkdata//multiXsmall//",
     benchmarktype.MULTI_CONTROLLED_X_MEDUIM:"benchmarkdata//multiXmeduim//",
     benchmarktype.STABILIZER_MEASUREMENT_SMALL:"benchmarkdata//qecsmall//",
@@ -50,6 +53,22 @@ benchmark_file_path={
     benchmarktype.LCU_SMALL:"benchmarkdata//hamsimsmall//",
     benchmarktype.LCU_MEDUIM:"benchmarkdata//hamsimmeduim//",
 }
+
+
+
+random_small_benchmark={
+    0: "data_8_syn_8_gc_40_1",
+    1: "data_10_syn_10_gc_40_1",
+    2: "data_10_syn_10_gc_40_2",
+}
+
+
+random_medium_benchmark={
+    0: "data_20_syn_20_gc_100_1",
+    1: "data_20_syn_20_gc_100_2",
+    2: "data_25_syn_25_gc_100_1",
+}
+
 
 
 
@@ -76,22 +95,28 @@ qec_meduim_benchmark={
 
 
 multix_small_benchmark={
-    0:"multiX_3_1",
-    1:"multiX_4_1",
-    2:"multiX_5_1",
-    3:"multiX_6_1",
-    4:"multiX_7_1",
-    5:"multiX_8_1",
+    0:"mcx_2",
+    1:"mcx_3",
+    2:"mcx_4",
+    3:"mcx_5",
+    4:"mcx_6",
+    5:"mcx_7",
+    6:"mcx_8",
+    7:"mcx_9",
+    8:"mcx_10"
 }
 
 
 multix_medium_benchmark={
-    0:"multiX_3_2",
-    1:"multiX_4_2",
-    2:"multiX_5_2",
-    3:"multiX_6_2",
-    4:"multiX_7_2",
-    5:"multiX_8_2",
+    0:"mcx_11",
+    1:"mcx_12",
+    2:"mcx_13",
+    3:"mcx_14",
+    4:"mcx_15",
+    5:"mcx_16",
+    6:"mcx_17",
+    7:"mcx_18",
+    8:"mcx_19"
 }
 
 

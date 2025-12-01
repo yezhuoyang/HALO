@@ -1,0 +1,37 @@
+q = alloc_data(3)
+s = alloc_helper(1)
+H s0
+CNOT q1, s0
+Tdg s0
+CNOT q0, s0
+T s0
+CNOT q1, s0
+Tdg s0
+CNOT q0, s0
+T q1
+T s0
+H s0
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+CNOT s0, q2
+H s0
+CNOT q1, s0
+Tdg s0
+CNOT q0, s0
+T s0
+CNOT q1, s0
+Tdg s0
+CNOT q0, s0
+T q1
+T s0
+H s0
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+deallocate_helper(s0)
+c0 = MEASURE q0
+c1 = MEASURE q1
+deallocate_data(q)

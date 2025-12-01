@@ -1,0 +1,17 @@
+q = alloc_data(12)
+Tdg q7
+T q8
+c0 = MEASURE q7
+c1 = MEASURE q8
+Y q11
+c2 = MEASURE q11
+c3 = MEASURE q6
+H q4
+S q3
+CP 1.2493338053084568, q1, q5
+c4 = MEASURE q9
+Sdg q3
+c5 = MEASURE q10
+H q4
+CNOT q2, q0
+deallocate_data(q)

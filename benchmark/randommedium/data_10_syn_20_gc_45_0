@@ -1,0 +1,68 @@
+q = alloc_data(10)
+s = alloc_helper(20)
+S s5
+c0 = MEASURE s16
+deallocate_helper(s16)
+c1 = MEASURE s3
+deallocate_helper(s3)
+c2 = MEASURE s1
+deallocate_helper(s1)
+c3 = MEASURE s15
+deallocate_helper(s15)
+H s12
+U(2.655364577080631, 1.7459171312775388, 1.3528562665079626) s11 
+c4 = MEASURE s13
+deallocate_helper(s13)
+c5 = MEASURE s2
+deallocate_helper(s2)
+c6 = MEASURE s7
+deallocate_helper(s7)
+c7 = MEASURE s17
+deallocate_helper(s17)
+T s14
+RY(1.6620336263717548) s19 
+X s4
+c8 = MEASURE q7
+U3(3.4685735833820837, 5.211303200140635, 3.886274220255387) q1 
+c9 = MEASURE s18
+deallocate_helper(s18)
+c10 = MEASURE s12
+deallocate_helper(s12)
+c11 = MEASURE s10
+deallocate_helper(s10)
+c12 = MEASURE s14
+deallocate_helper(s14)
+X q6
+c13 = MEASURE s8
+deallocate_helper(s8)
+Y q6
+T s5
+SX s19
+RY(2.3259156135863264) q2 
+S q5
+Y q2
+c14 = MEASURE q6
+c15 = MEASURE s0
+deallocate_helper(s0)
+CH q0, q3
+c16 = MEASURE q9
+c17 = MEASURE s9
+deallocate_helper(s9)
+c18 = MEASURE s5
+deallocate_helper(s5)
+X q3
+X q0
+c19 = MEASURE s19
+deallocate_helper(s19)
+c20 = MEASURE s4
+deallocate_helper(s4)
+Y q3
+RX(4.118242591538189) q3 
+U3(0.8976886778789475, 0.8773231720794521, 4.680903826288659) s6 
+c21 = MEASURE s11
+deallocate_helper(s11)
+c22 = MEASURE s6
+deallocate_helper(s6)
+U3(1.3780329714965154, 6.267713632489168, 3.2014481220496327) q1 
+Y q5
+deallocate_data(q)

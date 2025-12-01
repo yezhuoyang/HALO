@@ -1,0 +1,22 @@
+q = alloc_data(35)
+Sdg q30
+H q2
+c0 = MEASURE q32
+c1 = MEASURE q29
+c2 = MEASURE q24
+c3 = MEASURE q22
+CNOT q3, q9
+c4 = MEASURE q30
+c5 = MEASURE q26
+c6 = MEASURE q28
+c7 = MEASURE q21
+c8 = MEASURE q27
+c9 = MEASURE q31
+c10 = MEASURE q34
+SX q14
+S q1
+c11 = MEASURE q20
+c12 = MEASURE q23
+c13 = MEASURE q25
+c14 = MEASURE q33
+deallocate_data(q)
