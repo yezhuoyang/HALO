@@ -1,9 +1,64 @@
 import random
-from typing import List, Tuple, Dict
-from instruction import instruction, Instype, get_gate_type_name
+from typing import List, Tuple, Dict, Optional
+from instruction import construct_qiskit_circuit, instruction, Instype, get_gate_type_name
+# --- Assuming these are imported from your instruction.py ---
+# from instruction import instruction, Instype, get_gate_type_name
+# For the purpose of this script to run standalone, I will include 
+# the necessary Enum/Class stubs. If you have the file, you can remove these stubs.
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister, transpile
+from qiskit_aer import AerSimulator  # <- use AerSimulator (Qiskit 2.x)
+# <STUBS START>
+from enum import Enum
 
 
-# --- AST Nodes ---
+# <STUBS END>
+
+
+# --- 1. Your Toffoli Decomposition ---
+
+def toffoli_decomposition(qubit1: str, qubit2: str, qubit3: str) -> Tuple[List[instruction], str]:
+    """
+    We construct the Toffoli gate by decomposing it into a series of CNOT and single-qubit gates.
+    """
+    program_string = ""
+    inst_list = []
+    
+    inst_list.append(instruction(Instype.H, [qubit3]))
+    program_string += f"H {qubit3}\n"
+    inst_list.append(instruction(Instype.CNOT, [qubit2, qubit3]))
+    program_string += f"CNOT {qubit2}, {qubit3}\n"
+    inst_list.append(instruction(Instype.Tdg, [qubit3]))
+    program_string += f"Tdg {qubit3}\n"
+    inst_list.append(instruction(Instype.CNOT, [qubit1, qubit3]))
+    program_string += f"CNOT {qubit1}, {qubit3}\n"
+    inst_list.append(instruction(Instype.T, [qubit3]))
+    program_string += f"T {qubit3}\n"
+    inst_list.append(instruction(Instype.CNOT, [qubit2, qubit3]))
+    program_string += f"CNOT {qubit2}, {qubit3}\n"
+    inst_list.append(instruction(Instype.Tdg, [qubit3]))
+    program_string += f"Tdg {qubit3}\n"
+    inst_list.append(instruction(Instype.CNOT, [qubit1, qubit3]))
+    program_string += f"CNOT {qubit1}, {qubit3}\n"
+    inst_list.append(instruction(Instype.T, [qubit2]))
+    program_string += f"T {qubit2}\n"
+    inst_list.append(instruction(Instype.T, [qubit3]))
+    program_string += f"T {qubit3}\n"
+    inst_list.append(instruction(Instype.H, [qubit3]))
+    program_string += f"H {qubit3}\n"
+    inst_list.append(instruction(Instype.CNOT, [qubit1, qubit2]))
+    program_string += f"CNOT {qubit1}, {qubit2}\n"
+    inst_list.append(instruction(Instype.T, [qubit1]))
+    program_string += f"T {qubit1}\n"
+    inst_list.append(instruction(Instype.Tdg, [qubit2]))
+    program_string += f"Tdg {qubit2}\n"
+    inst_list.append(instruction(Instype.CNOT, [qubit1, qubit2]))
+    program_string += f"CNOT {qubit1}, {qubit2}\n"
+    
+    return inst_list, program_string
+
+
+# --- 2. AST Definitions ---
+
 class BooleanNode: pass
 
 class VarNode(BooleanNode):
@@ -15,13 +70,12 @@ class OpNode(BooleanNode):
     def __init__(self, op: str, left: BooleanNode, right: BooleanNode = None):
         self.op = op
         self.left = left
-        self.right = right # None for NOT
+        self.right = right 
     def __repr__(self):
         if self.op == 'NOT': return f"~({self.left})"
         sym = '&' if self.op == 'AND' else '|'
         return f"({self.left} {sym} {self.right})"
 
-# --- Logic Generator ---
 def generate_random_ast(depth: int, num_vars: int) -> BooleanNode:
     if depth == 0 or random.random() < 0.15:
         return VarNode(random.randint(0, num_vars - 1))
@@ -33,79 +87,79 @@ def generate_random_ast(depth: int, num_vars: int) -> BooleanNode:
         return OpNode(op, generate_random_ast(depth - 1, num_vars), 
                           generate_random_ast(depth - 1, num_vars))
 
-# --- The Compiler ---
+
+# --- 3. The Compiler ---
 
 class BenchmarkCompiler:
-    def __init__(self, decompose_toffoli: bool = False):
+    def __init__(self):
         self.inst_list: List[instruction] = []
         self.program_str = ""
-        self.decompose_toffoli = decompose_toffoli
         
         # Allocator State
-        self.active_helpers: Dict[int, bool] = {} # map id -> is_active
         self.next_helper_id = 0
         self.max_helper_usage = 0
         self.current_helper_usage = 0
 
     def alloc(self) -> str:
-        """
-        Allocates a logical helper ID. 
-        In a real OS, this maps to a physical qubit. 
-        Here, we just track IDs to ensure unique names in the script.
-        """
-        # We perform a simple linear search for a free ID or create a new one
-        # to simulate the OS's perspective of "requesting a resource"
-        # However, for the script generation, we usually just increment to ensure unique variable names
-        # and let the OS map them. To make the benchmark readable, let's just increment.
-        
         hid = self.next_helper_id
         self.next_helper_id += 1
-        
         self.current_helper_usage += 1
         if self.current_helper_usage > self.max_helper_usage:
             self.max_helper_usage = self.current_helper_usage
-            
         return f"s{hid}"
 
     def dealloc(self, addr: str):
         if not addr.startswith('s'): return
         self.current_helper_usage -= 1
-        # Add the explicit system call instruction
         self.inst_list.append(instruction(Instype.RELEASE, [addr]))
         self.program_str += f"deallocate_helper({addr})\n"
 
-    def emit(self, inst_type: Instype, qubits: List[str], comment: str = ""):
-        # Check for decomposition
-        if self.decompose_toffoli and inst_type == Instype.Toffoli:
-            # Assuming toffoli_decomposition function exists in your scope or we import it
-            # For this snippet, I will just emit the standard line for clarity
-            # unless you include the decomposition logic here.
-            pass
-            
+    def emit_standard(self, inst_type: Instype, qubits: List[str]):
+        """Emits a standard gate (not Toffoli)."""
         inst = instruction(inst_type, qubits)
         self.inst_list.append(inst)
-        # Use the string representation logic or custom format
         q_str = ", ".join(qubits)
         cmd = get_gate_type_name(inst_type)
-        self.program_str += f"{cmd} {q_str}"
-        if comment: self.program_str += f"  # {comment}"
-        self.program_str += "\n"
+        self.program_str += f"{cmd} {q_str}\n"
 
-    # --- Recursive Compilation Core ---
+    def emit_toffoli_decomposed(self, q1: str, q2: str, q3: str):
+        """Injects the decomposed Toffoli sequence."""
+        new_insts, new_str = toffoli_decomposition(q1, q2, q3)
+        self.inst_list.extend(new_insts)
+        self.program_str += new_str
+
+    def _apply_logic(self, op: str, a: str, b: str, out: str):
+        """Applies logic. REPLACES standard Toffoli with the decomposition."""
+        if op == 'NOT':
+            self.emit_standard(Instype.CNOT, [a, out])
+            self.emit_standard(Instype.X, [out])
+        
+        elif op == 'AND':
+            # Replaced single Toffoli with decomposition
+            self.emit_toffoli_decomposed(a, b, out)
+        
+        elif op == 'OR':
+            # De Morgan: ~(~a & ~b)
+            # 1. Flip inputs
+            self.emit_standard(Instype.X, [a])
+            self.emit_standard(Instype.X, [b])
+            
+            # 2. Decomposed Toffoli
+            self.emit_toffoli_decomposed(a, b, out)
+            
+            # 3. Restore inputs and Flip output
+            self.emit_standard(Instype.X, [b]) 
+            self.emit_standard(Instype.X, [a]) 
+            self.emit_standard(Instype.X, [out])
 
     def recurse(self, node: BooleanNode) -> str:
-        """
-        Computes the result of 'node' into a newly allocated helper.
-        Returns the address of that helper.
-        """
-        # 1. Base Case: Variable (Data Qubit)
+        # Base Case: Variable
         if isinstance(node, VarNode):
             return f"q{node.index}"
 
-        # 2. Recursive Step
+        # Recursive Step
         if isinstance(node, OpNode):
             # A. Compute Children
-            # We must compute them, store their addresses
             addr_left = self.recurse(node.left)
             addr_right = None
             if node.right:
@@ -114,11 +168,10 @@ class BenchmarkCompiler:
             # B. Allocate Output
             addr_out = self.alloc()
 
-            # C. Compute Logic (Forward)
+            # C. Compute Logic (Decomposed)
             self._apply_logic(node.op, addr_left, addr_right, addr_out)
 
             # D. Uncompute Children (Backward) & Release
-            # This is the "Naive" part: we immediately clean up inputs
             if node.right:
                 self.unrecurse(node.right, addr_right)
             self.unrecurse(node.left, addr_left)
@@ -126,31 +179,20 @@ class BenchmarkCompiler:
             return addr_out
 
     def unrecurse(self, node: BooleanNode, addr_curr: str):
-        """
-        Uncomputes 'node' (which currently sits in 'addr_curr').
-        Then releases 'addr_curr'.
-        """
-        # 1. Base Case: Variable
-        # Data qubits are persistent, we do not dealloc or uncompute them.
         if isinstance(node, VarNode):
             return
 
-        # 2. Recursive Uncompute
         if isinstance(node, OpNode):
-            # A. To uncompute Self, we need inputs. Recompute them!
-            # This causes the "Bennett" exponential blowup / high churn
+            # A. Recompute inputs to enable uncomputation (The naive churn)
             addr_left = self.recurse(node.left)
             addr_right = None
             if node.right:
                 addr_right = self.recurse(node.right)
 
-            # B. Uncompute Logic (Inverse)
-            # Since standard boolean gates (And/Or) are their own inverse logic 
-            # (when applied to result + inputs), we apply the same gates.
+            # B. Uncompute Logic (Same logic applies for reversible gates)
             self._apply_logic(node.op, addr_left, addr_right, addr_curr)
 
             # C. Release Self
-            # We are now back to |0>, so we release immediately
             self.dealloc(addr_curr)
 
             # D. Clean up the inputs we just re-computed
@@ -158,61 +200,228 @@ class BenchmarkCompiler:
                 self.unrecurse(node.right, addr_right)
             self.unrecurse(node.left, addr_left)
 
-    def _apply_logic(self, op: str, a: str, b: str, out: str):
-        """Helper to emit gates for operations"""
-        if op == 'NOT':
-            # Logic: out = ~a. 
-            # 1. Copy a to out (CNOT)
-            # 2. Flip out (X)
-            self.emit(Instype.CNOT, [a, out])
-            self.emit(Instype.X, [out])
-        
-        elif op == 'AND':
-            # Logic: out = a & b (Toffoli)
-            self.emit(Instype.Toffoli, [a, b, out])
-        
-        elif op == 'OR':
-            # Logic: out = a | b = ~(~a & ~b)
-            # 1. Invert inputs (non-destructively by wrapping)
-            #    Wait, we can't invert 'a' in place if it's a shared node?
-            #    In this strict tree, nodes aren't shared. Safe to invert in place temporarily.
-            self.emit(Instype.X, [a])
-            self.emit(Instype.X, [b])
-            self.emit(Instype.Toffoli, [a, b, out])
-            self.emit(Instype.X, [b]) # Restore b
-            self.emit(Instype.X, [a]) # Restore a
-            self.emit(Instype.X, [out]) # Flip output
 
-def generate_naive_benchmark(num_vars: int, depth: int) -> Tuple[List[instruction], str]:
+# --- 4. Main Generator ---
+
+def generate_decomposed_benchmark(num_vars: int, depth: int) -> Tuple[List[instruction], str]:
     # 1. Generate Expression
     root = generate_random_ast(depth, num_vars)
     
     # 2. Compile
-    compiler = BenchmarkCompiler(decompose_toffoli=False)
+    compiler = BenchmarkCompiler()
     
-    # We delay header generation until after compilation to know 'max_helper_usage'
+    # Compile the tree
     output_addr = compiler.recurse(root)
     
     # 3. Final Measure & Cleanup
     compiler.program_str += f"c0 = MEASURE {output_addr}\n"
     compiler.inst_list.append(instruction(Instype.MEASURE, [output_addr], classical_address=0))
     
-    # Final dealloc of the root result
     compiler.dealloc(output_addr)
     compiler.program_str += "deallocate_data(q)\n"
 
     # 4. Construct Header
-    header = f"# Naive Boolean Benchmark\n"
+    header = f"# Naive Boolean Benchmark (Decomposed Toffoli)\n"
     header += f"# Expression: {root}\n"
     header += f"q = alloc_data({num_vars})\n"
-    header += f"s = alloc_helper({compiler.max_helper_usage})\n" # Exact max needed
+    header += f"s = alloc_helper({compiler.max_helper_usage})\n"
     header += "set_shot(100)\n\n"
     
     return compiler.inst_list, header + compiler.program_str
 
-# --- Usage Example ---
+
+
+
+
+# Ensure we have the necessary imports from previous modules
+# from instruction import instruction, Instype, construct_qiskit_circuit
+# from qiskit_aer import AerSimulator
+# from qiskit import transpile
+
+def evaluate_ast(node: 'BooleanNode', input_values: Dict[int, int]) -> int:
+    """
+    Classically evaluates the boolean AST for a specific set of input values.
+    
+    Args:
+        node: The root of the BooleanNode tree.
+        input_values: A dictionary mapping variable indices to 0 or 1.
+                      e.g., {0: 1, 1: 0, 2: 1}
+    Returns:
+        1 if True, 0 if False.
+    """
+    if isinstance(node, VarNode):
+        # Return the value of the variable from inputs (default to 0 if missing)
+        return input_values.get(node.index, 0)
+    
+    if isinstance(node, OpNode):
+        if node.op == 'NOT':
+            # 1 - val is equivalent to boolean NOT for 0/1 integers
+            return 1 - evaluate_ast(node.left, input_values)
+        
+        val_left = evaluate_ast(node.left, input_values)
+        # Short-circuit logic is not strictly necessary for correctness but good for perfromance
+        # However, for full evaluation we just compute both.
+        
+        if node.op == 'AND':
+            val_right = evaluate_ast(node.right, input_values)
+            return val_left & val_right
+            
+        if node.op == 'OR':
+            val_right = evaluate_ast(node.right, input_values)
+            return val_left | val_right
+            
+    raise ValueError(f"Unknown node type: {type(node)}")
+
+
+def get_resource_counts(inst_list: List[instruction], num_vars: int) -> Tuple[int, int, int]:
+    """
+    Scans the instruction list to find the highest index of helper qubits used.
+    
+    Returns:
+        (num_data_qubits, num_syndrome_qubits, num_classical_bits)
+    """
+    max_s_index = -1
+    max_c_index = 0 # Assume at least c0 exists if we measure
+    
+    for inst in inst_list:
+        # Check qubit addresses
+        for q_addr in inst.get_qubitaddress():
+            if q_addr.startswith('s'):
+                idx = int(q_addr[1:])
+                if idx > max_s_index:
+                    max_s_index = idx
+        
+        # Check classical addresses
+        if inst.get_type() == Instype.MEASURE:
+            c_addr = inst.get_classical_address()
+            if c_addr > max_c_index:
+                max_c_index = c_addr
+
+    # Data qubits are fixed by input, helpers are max_index + 1
+    return num_vars, max_s_index + 1, max_c_index + 1
+
+def verify_circuit_correctness(inst_list: List[instruction], root_node: 'BooleanNode', num_vars: int) -> bool:
+    """
+    Verifies that the compiled quantum circuit matches the boolean logic of the AST
+    for ALL possible classical inputs.
+    
+    Args:
+        inst_list: The compiled instructions (without input initialization).
+        root_node: The classical AST ground truth.
+        num_vars: The number of input variables.
+        
+    Returns:
+        True if the circuit is correct for all inputs, False otherwise.
+    """
+    
+    # 0. Print Logic Information
+    print(f"\n{'='*60}")
+    print(f"Generated Logical Expression: {root_node}")
+    print(f"{'='*60}\n")
+
+    # 1. Determine circuit resources
+    data_n, syn_n, meas_n = get_resource_counts(inst_list, num_vars)
+    
+
+    print(f"Circuit Resources: Data Qubits = {data_n}, Helper Qubits = {syn_n}, Classical Bits = {meas_n}\n")
+
+    # 2. Setup Simulator
+    sim = AerSimulator()
+    total_inputs = 2 ** num_vars
+    print(f"Starting verification for {total_inputs} input combinations...")
+    
+    # 3. Iterate over all possible input bitstrings
+    for i in range(total_inputs):
+        # Generate input map for this iteration
+        # e.g., i=5 (101 binary) -> {0: 1, 1: 0, 2: 1}
+        input_map = {}
+        init_instructions = []
+        
+        debug_input_str = []
+        
+        for bit_idx in range(num_vars):
+            bit_val = (i >> bit_idx) & 1
+            input_map[bit_idx] = bit_val
+            
+            # If input bit is 1, we must add an X gate to initialize the qubit
+            if bit_val == 1:
+                # We prepend these instructions
+                init_instructions.append(instruction(Instype.X, [f"q{bit_idx}"]))
+                debug_input_str.append(f"q{bit_idx}=1")
+            else:
+                debug_input_str.append(f"q{bit_idx}=0")
+        
+        # 4. Calculate Expected Result (Classical Oracle)
+        expected_bool = evaluate_ast(root_node, input_map)
+        
+        # 5. Build Verification Circuit (Input Init + Benchmark Logic)
+        full_circuit_insts = init_instructions + inst_list
+        
+        qc = construct_qiskit_circuit(data_n, syn_n, meas_n, full_circuit_insts)
+        tqc = transpile(qc, sim)
+        
+        # 6. Run Simulation
+        # We use a small number of shots because the circuit should be deterministic (boolean logic)
+        result = sim.run(tqc, shots=100).result()
+        counts = result.get_counts(tqc)
+        
+        # 7. Check Result
+        # The result key is a hex or binary string depending on qiskit version/settings, usually binary '0' or '1'
+        # We look for the most frequent result.
+        measured_state = max(counts, key=counts.get)
+        
+        # Note: Qiskit keys are little-endian or simple strings. 
+        # For a single measurement c0, the key is usually just "0" or "1".
+        # If there are multiple classical bits, we might need to parse.
+        # Assuming we care about c0 (the Least Significant Bit of the result)
+        measured_val = int(measured_state, 2) & 1
+        
+        # --- MIDDLE OUTPUT: PRINT CURRENT STATUS ---
+        formatted_input = f"[{', '.join(debug_input_str)}]"
+        print(f"Input: {formatted_input:<25} | Ideal: {expected_bool} | Quantum Counts: {counts}")
+
+        if measured_val != expected_bool:
+            print(f"\n[FAIL] Mismatch Detected!")
+            print(f"       Input: {formatted_input}")
+            print(f"       Expected: {expected_bool}, Got: {measured_val}")
+            print(f"       AST: {root_node}\n")
+            return False
+
+    print(f"\n[PASS] Circuit verified correctly for all {total_inputs} inputs.")
+    return True
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
-    # Generate a circuit with 4 inputs and depth 3
-    # This will generate A LOT of alloc/dealloc due to recomputation
-    insts, text = generate_naive_benchmark(num_vars=4, depth=3)
-    print(text)
+    # Test Logic
+    # 1. Generate a small random benchmark
+    num_vars = 8
+    depth = 4
+    root = generate_random_ast(depth, num_vars)
+    print(f"Generated AST: {root}")
+    
+    # 2. Compile it (using the Decomposed Toffoli compiler from previous step)
+    compiler = BenchmarkCompiler()
+    out_addr = compiler.recurse(root)
+    
+    # Add final measurement
+    compiler.inst_list.append(instruction(Instype.MEASURE, [out_addr], classical_address=0))
+    compiler.dealloc(out_addr) # Release final result qubit
+    
+    # 3. Verify it
+    # Note: We pass the raw instruction list. The verification function handles X-gate injection.
+    is_correct = verify_circuit_correctness(compiler.inst_list, root, num_vars)
+    
+    if is_correct:
+        print("SUCCESS: The quantum circuit implements the classical logic perfectly.")
+    else:
+        print("FAILURE: Logic mismatch detected.")
