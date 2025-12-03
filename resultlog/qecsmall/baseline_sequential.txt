@@ -1,0 +1,162 @@
+----------------------Log:---------------------------------
+[ADD] Process 0 added to the queue at time 1.8759591579437256, shots: 1000.
+[ADD] Process 1 added to the queue at time 4.142206907272339, shots: 1000.
+[ADD] Process 2 added to the queue at time 4.508843421936035, shots: 1000.
+[ADD] Process 3 added to the queue at time 7.820891857147217, shots: 1000.
+[ADD] Process 4 added to the queue at time 9.085543155670166, shots: 1000.
+[ADD] Process 5 added to the queue at time 12.906594038009644, shots: 1000.
+[HARDWARE RESULT] {0: {'110': 53, '111': 396, '000': 444, '100': 10, '010': 11, '001': 59, '101': 10, '011': 17}}
+[PROCESS FINISH] Process 0 finished all shots at time 18.324300050735474.
+[PROCESS FIDELITY] Process 0 fidelity: 0.84
+[PROCESS WAITING TIME] Process 0 waiting time: 16.448340892791748 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P1: DQ=8, HQ=0, Shots=1000----P2: DQ=8, HQ=0, Shots=1000----P3: DQ=10, HQ=0, Shots=1000----P4: DQ=8, HQ=0, Shots=1000----P5: DQ=8, HQ=0, Shots=1000----
+[ADD] Process 6 added to the queue at time 19.851651906967163, shots: 1000.
+[ADD] Process 7 added to the queue at time 21.22345757484436, shots: 1000.
+[ADD] Process 8 added to the queue at time 21.834861755371094, shots: 1000.
+[ADD] Process 9 added to the queue at time 25.896775007247925, shots: 1000.
+[ADD] Process 10 added to the queue at time 26.268033504486084, shots: 1000.
+[ADD] Process 11 added to the queue at time 26.285977602005005, shots: 1000.
+[ADD] Process 12 added to the queue at time 27.928725242614746, shots: 1000.
+[ADD] Process 13 added to the queue at time 30.562307596206665, shots: 1000.
+[ADD] Process 14 added to the queue at time 30.583390712738037, shots: 1000.
+[HARDWARE RESULT] {1: {'00000': 451, '00111': 346, '00110': 36, '00001': 28, '00101': 23, '00100': 28, '01111': 12, '00010': 8, '01101': 2, '01000': 10, '01010': 5, '10000': 4, '00011': 27, '10111': 3, '01110': 4, '01001': 4, '01011': 2, '01100': 6, '11000': 1}}
+[PROCESS FINISH] Process 1 finished all shots at time 34.08580684661865.
+[PROCESS FIDELITY] Process 1 fidelity: 0.7969999999999999
+[PROCESS WAITING TIME] Process 1 waiting time: 29.943599939346313 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P2: DQ=8, HQ=0, Shots=1000----P3: DQ=10, HQ=0, Shots=1000----P4: DQ=8, HQ=0, Shots=1000----P5: DQ=8, HQ=0, Shots=1000----P6: DQ=5, HQ=0, Shots=1000----P7: DQ=8, HQ=0, Shots=1000----P8: DQ=7, HQ=0, Shots=1000----P9: DQ=6, HQ=0, Shots=1000----P10: DQ=5, HQ=0, Shots=1000----P11: DQ=6, HQ=0, Shots=1000----P12: DQ=8, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=8, HQ=0, Shots=1000----
+[ADD] Process 15 added to the queue at time 35.23885250091553, shots: 1000.
+[ADD] Process 16 added to the queue at time 37.537320375442505, shots: 1000.
+[ADD] Process 17 added to the queue at time 38.20641851425171, shots: 1000.
+[ADD] Process 18 added to the queue at time 40.545331954956055, shots: 1000.
+[HARDWARE RESULT] {2: {'0100': 233, '1110': 9, '1000': 185, '0011': 21, '0010': 12, '0000': 221, '0101': 15, '1101': 14, '1100': 190, '0110': 9, '0001': 20, '1010': 11, '1001': 17, '1011': 15, '1111': 15, '0111': 13}}
+[PROCESS FINISH] Process 2 finished all shots at time 49.220086336135864.
+[PROCESS FIDELITY] Process 2 fidelity: 0.829
+[PROCESS WAITING TIME] Process 2 waiting time: 44.71124291419983 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P3: DQ=10, HQ=0, Shots=1000----P4: DQ=8, HQ=0, Shots=1000----P5: DQ=8, HQ=0, Shots=1000----P6: DQ=5, HQ=0, Shots=1000----P7: DQ=8, HQ=0, Shots=1000----P8: DQ=7, HQ=0, Shots=1000----P9: DQ=6, HQ=0, Shots=1000----P10: DQ=5, HQ=0, Shots=1000----P11: DQ=6, HQ=0, Shots=1000----P12: DQ=8, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=8, HQ=0, Shots=1000----P15: DQ=5, HQ=0, Shots=1000----P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {3: {'000111': 325, '000000': 405, '000101': 22, '001111': 13, '000100': 45, '001000': 12, '000110': 32, '010010': 1, '010000': 9, '010111': 12, '000011': 29, '000001': 6, '000010': 8, '010011': 4, '100111': 11, '001100': 7, '100100': 9, '001011': 1, '101111': 3, '100110': 6, '011111': 1, '100000': 16, '100101': 2, '100011': 7, '010100': 5, '101100': 1, '110101': 1, '100010': 3, '111000': 1, '001101': 1, '110000': 1, '100001': 1}}
+[PROCESS FINISH] Process 3 finished all shots at time 63.61705136299133.
+[PROCESS FIDELITY] Process 3 fidelity: 0.73
+[PROCESS WAITING TIME] Process 3 waiting time: 55.796159505844116 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P4: DQ=8, HQ=0, Shots=1000----P5: DQ=8, HQ=0, Shots=1000----P6: DQ=5, HQ=0, Shots=1000----P7: DQ=8, HQ=0, Shots=1000----P8: DQ=7, HQ=0, Shots=1000----P9: DQ=6, HQ=0, Shots=1000----P10: DQ=5, HQ=0, Shots=1000----P11: DQ=6, HQ=0, Shots=1000----P12: DQ=8, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=8, HQ=0, Shots=1000----P15: DQ=5, HQ=0, Shots=1000----P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {4: {'00111': 377, '00000': 437, '00101': 11, '00100': 18, '01111': 26, '00110': 18, '00001': 13, '10101': 1, '01001': 2, '10111': 8, '00011': 10, '01011': 8, '10000': 15, '01000': 33, '01100': 3, '00010': 9, '01110': 2, '01101': 3, '10001': 2, '10011': 1, '11000': 1, '01010': 1, '11111': 1}}
+[PROCESS FINISH] Process 4 finished all shots at time 78.43651795387268.
+[PROCESS FIDELITY] Process 4 fidelity: 0.814
+[PROCESS WAITING TIME] Process 4 waiting time: 69.35097479820251 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P5: DQ=8, HQ=0, Shots=1000----P6: DQ=5, HQ=0, Shots=1000----P7: DQ=8, HQ=0, Shots=1000----P8: DQ=7, HQ=0, Shots=1000----P9: DQ=6, HQ=0, Shots=1000----P10: DQ=5, HQ=0, Shots=1000----P11: DQ=6, HQ=0, Shots=1000----P12: DQ=8, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=8, HQ=0, Shots=1000----P15: DQ=5, HQ=0, Shots=1000----P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {5: {'00000': 411, '00111': 393, '00011': 15, '01100': 3, '01010': 5, '00110': 37, '01110': 9, '01101': 3, '10001': 1, '00001': 28, '00101': 16, '01111': 13, '01000': 9, '10111': 12, '00100': 13, '01001': 6, '00010': 6, '10011': 1, '11000': 1, '10000': 9, '01011': 3, '11111': 1, '10110': 2, '10101': 1, '11010': 1, '10100': 1}}
+[PROCESS FINISH] Process 5 finished all shots at time 91.70948648452759.
+[PROCESS FIDELITY] Process 5 fidelity: 0.8039999999999999
+[PROCESS WAITING TIME] Process 5 waiting time: 78.80289244651794 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P6: DQ=5, HQ=0, Shots=1000----P7: DQ=8, HQ=0, Shots=1000----P8: DQ=7, HQ=0, Shots=1000----P9: DQ=6, HQ=0, Shots=1000----P10: DQ=5, HQ=0, Shots=1000----P11: DQ=6, HQ=0, Shots=1000----P12: DQ=8, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=8, HQ=0, Shots=1000----P15: DQ=5, HQ=0, Shots=1000----P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {6: {'00': 970, '10': 30}}
+[PROCESS FINISH] Process 6 finished all shots at time 106.00020170211792.
+[PROCESS FIDELITY] Process 6 fidelity: 0.97
+[PROCESS WAITING TIME] Process 6 waiting time: 86.14854979515076 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P7: DQ=8, HQ=0, Shots=1000----P8: DQ=7, HQ=0, Shots=1000----P9: DQ=6, HQ=0, Shots=1000----P10: DQ=5, HQ=0, Shots=1000----P11: DQ=6, HQ=0, Shots=1000----P12: DQ=8, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=8, HQ=0, Shots=1000----P15: DQ=5, HQ=0, Shots=1000----P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {7: {'00000': 409, '00111': 382, '10010': 11, '00110': 18, '00001': 39, '01000': 18, '00100': 5, '01111': 20, '10101': 4, '00011': 17, '00101': 13, '00010': 14, '01001': 12, '11010': 1, '11011': 2, '01101': 1, '01110': 6, '10001': 1, '11111': 1, '10000': 4, '01011': 1, '01010': 5, '10111': 10, '01100': 1, '10110': 2, '10011': 1, '11000': 1, '11001': 1}}
+[PROCESS FINISH] Process 7 finished all shots at time 121.98351073265076.
+[PROCESS FIDELITY] Process 7 fidelity: 0.7909999999999999
+[PROCESS WAITING TIME] Process 7 waiting time: 100.7600531578064 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P8: DQ=7, HQ=0, Shots=1000----P9: DQ=6, HQ=0, Shots=1000----P10: DQ=5, HQ=0, Shots=1000----P11: DQ=6, HQ=0, Shots=1000----P12: DQ=8, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=8, HQ=0, Shots=1000----P15: DQ=5, HQ=0, Shots=1000----P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {8: {'111': 495, '000': 375, '010': 12, '100': 31, '101': 17, '110': 11, '011': 48, '001': 11}}
+[PROCESS FINISH] Process 8 finished all shots at time 138.22648358345032.
+[PROCESS FIDELITY] Process 8 fidelity: 0.86
+[PROCESS WAITING TIME] Process 8 waiting time: 116.39162182807922 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P9: DQ=6, HQ=0, Shots=1000----P10: DQ=5, HQ=0, Shots=1000----P11: DQ=6, HQ=0, Shots=1000----P12: DQ=8, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=8, HQ=0, Shots=1000----P15: DQ=5, HQ=0, Shots=1000----P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {9: {'00': 968, '01': 15, '10': 17}}
+[PROCESS FINISH] Process 9 finished all shots at time 152.69563102722168.
+[PROCESS FIDELITY] Process 9 fidelity: 0.968
+[PROCESS WAITING TIME] Process 9 waiting time: 126.79885601997375 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P10: DQ=5, HQ=0, Shots=1000----P11: DQ=6, HQ=0, Shots=1000----P12: DQ=8, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=8, HQ=0, Shots=1000----P15: DQ=5, HQ=0, Shots=1000----P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {10: {'00': 998, '01': 1, '10': 1}}
+[PROCESS FINISH] Process 10 finished all shots at time 181.189715385437.
+[PROCESS FIDELITY] Process 10 fidelity: 0.998
+[PROCESS WAITING TIME] Process 10 waiting time: 154.92168188095093 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P11: DQ=6, HQ=0, Shots=1000----P12: DQ=8, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=8, HQ=0, Shots=1000----P15: DQ=5, HQ=0, Shots=1000----P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {11: {'00': 963, '10': 30, '01': 7}}
+[PROCESS FINISH] Process 11 finished all shots at time 195.0876340866089.
+[PROCESS FIDELITY] Process 11 fidelity: 0.963
+[PROCESS WAITING TIME] Process 11 waiting time: 168.80165648460388 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P12: DQ=8, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=8, HQ=0, Shots=1000----P15: DQ=5, HQ=0, Shots=1000----P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {12: {'0000': 224, '1100': 191, '1001': 26, '0100': 209, '0010': 13, '0111': 10, '1110': 15, '0110': 13, '0101': 29, '0001': 22, '1000': 201, '1011': 10, '1101': 23, '1010': 7, '0011': 4, '1111': 3}}
+[PROCESS FINISH] Process 12 finished all shots at time 208.39814281463623.
+[PROCESS FIDELITY] Process 12 fidelity: 0.825
+[PROCESS WAITING TIME] Process 12 waiting time: 180.46941757202148 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P13: DQ=8, HQ=0, Shots=1000----P14: DQ=8, HQ=0, Shots=1000----P15: DQ=5, HQ=0, Shots=1000----P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {13: {'1000': 199, '0000': 206, '0100': 210, '0011': 11, '1110': 26, '1100': 209, '0001': 15, '0110': 21, '1101': 15, '1111': 9, '0111': 10, '0010': 14, '1010': 16, '1011': 15, '0101': 8, '1001': 16}}
+[PROCESS FINISH] Process 13 finished all shots at time 223.79850244522095.
+[PROCESS FIDELITY] Process 13 fidelity: 0.824
+[PROCESS WAITING TIME] Process 13 waiting time: 193.23619484901428 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P14: DQ=8, HQ=0, Shots=1000----P15: DQ=5, HQ=0, Shots=1000----P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {14: {'00000': 439, '00111': 363, '00011': 13, '01001': 1, '10000': 31, '01111': 23, '00110': 16, '10111': 20, '01010': 3, '00001': 6, '00010': 8, '00100': 14, '11000': 15, '00101': 14, '01000': 17, '10110': 1, '01101': 1, '11111': 5, '11101': 1, '01011': 1, '10100': 2, '10001': 1, '01100': 2, '11100': 1, '10011': 1, '10101': 1}}
+[PROCESS FINISH] Process 14 finished all shots at time 238.40517783164978.
+[PROCESS FIDELITY] Process 14 fidelity: 0.8019999999999999
+[PROCESS WAITING TIME] Process 14 waiting time: 207.82178711891174 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P15: DQ=5, HQ=0, Shots=1000----P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {15: {'00': 998, '10': 2}}
+[PROCESS FINISH] Process 15 finished all shots at time 254.82234907150269.
+[PROCESS FIDELITY] Process 15 fidelity: 0.998
+[PROCESS WAITING TIME] Process 15 waiting time: 219.58349657058716 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P16: DQ=10, HQ=0, Shots=1000----P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {16: {'000111': 369, '000000': 370, '000110': 33, '000100': 38, '000001': 8, '010111': 19, '000011': 21, '001000': 13, '001110': 1, '100000': 11, '000010': 10, '010110': 5, '001101': 1, '000101': 12, '010000': 21, '110101': 2, '111011': 1, '010010': 4, '100110': 4, '110010': 2, '100100': 2, '100011': 3, '001100': 7, '001011': 3, '010011': 2, '010001': 5, '100001': 7, '110111': 2, '110110': 2, '100101': 2, '001111': 6, '100111': 5, '100010': 3, '110100': 1, '010100': 4, '010101': 1}}
+[PROCESS FINISH] Process 16 finished all shots at time 269.36520743370056.
+[PROCESS FIDELITY] Process 16 fidelity: 0.7389999999999999
+[PROCESS WAITING TIME] Process 16 waiting time: 231.82788705825806 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P17: DQ=5, HQ=0, Shots=1000----P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {17: {'00': 957, '10': 24, '11': 7, '01': 12}}
+[PROCESS FINISH] Process 17 finished all shots at time 286.2282826900482.
+[PROCESS FIDELITY] Process 17 fidelity: 0.957
+[PROCESS WAITING TIME] Process 17 waiting time: 248.0218641757965 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P18: DQ=10, HQ=0, Shots=1000----
+[HARDWARE RESULT] {18: {'000100': 66, '000111': 267, '000010': 21, '000011': 69, '000000': 318, '010110': 4, '000110': 36, '010100': 11, '010111': 26, '000001': 33, '010001': 6, '000101': 15, '011100': 2, '010000': 28, '001111': 3, '110010': 2, '110000': 1, '001110': 3, '001001': 4, '001100': 9, '010101': 5, '001101': 4, '100100': 3, '011011': 2, '100001': 2, '001000': 11, '100000': 15, '101100': 1, '010011': 11, '100110': 2, '001010': 1, '110111': 2, '100111': 7, '011111': 2, '001011': 3, '011001': 2, '011000': 1, '011010': 1, '010010': 1}}
+[PROCESS FINISH] Process 18 finished all shots at time 301.92758798599243.
+[PROCESS FIDELITY] Process 18 fidelity: 0.585
+[PROCESS WAITING TIME] Process 18 waiting time: 261.3822560310364 seconds
+[QUEUE STATUS] [PROCESS QUEUE] 
+[STOP] Scheduling stopped at time 303.22384572029114.
+------------------Statistics:---------------------------------Total running time: 302.4862451553345
+Finished process count: 19
+Throughput: 
+0.06281277348741267
+----------------------Process waiting times-----------------------:
+Process 0: 16.448340892791748
+Process 1: 29.943599939346313
+Process 2: 44.71124291419983
+Process 3: 55.796159505844116
+Process 4: 69.35097479820251
+Process 5: 78.80289244651794
+Process 6: 86.14854979515076
+Process 7: 100.7600531578064
+Process 8: 116.39162182807922
+Process 9: 126.79885601997375
+Process 10: 154.92168188095093
+Process 11: 168.80165648460388
+Process 12: 180.46941757202148
+Process 13: 193.23619484901428
+Process 14: 207.82178711891174
+Process 15: 219.58349657058716
+Process 16: 231.82788705825806
+Process 17: 248.0218641757965
+Process 18: 261.3822560310364
+Average waiting time across all processes: 136.37992279153121
+----------------------Process fidelities-----------------------:
+Process 0: 0.84
+Process 1: 0.7969999999999999
+Process 2: 0.829
+Process 3: 0.73
+Process 4: 0.814
+Process 5: 0.8039999999999999
+Process 6: 0.97
+Process 7: 0.7909999999999999
+Process 8: 0.86
+Process 9: 0.968
+Process 10: 0.998
+Process 11: 0.963
+Process 12: 0.825
+Process 13: 0.824
+Process 14: 0.8019999999999999
+Process 15: 0.998
+Process 16: 0.7389999999999999
+Process 17: 0.957
+Process 18: 0.585
+Average fidelity across all processes: 0.8470526315789473

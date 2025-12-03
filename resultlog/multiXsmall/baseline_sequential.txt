@@ -1,0 +1,343 @@
+----------------------Log:---------------------------------
+[ADD] Process 0 added to the queue at time 1.933936595916748, shots: 1000.
+[ADD] Process 1 added to the queue at time 4.190653085708618, shots: 1000.
+[ADD] Process 2 added to the queue at time 4.731723308563232, shots: 1000.
+[UTILITY] New batch has utility 0.03007518796992481.
+[PROCESS COUNT] New batch has 1 processes.
+[ADD] Process 3 added to the queue at time 6.107301235198975, shots: 1000.
+[ADD] Process 4 added to the queue at time 6.922064542770386, shots: 1000.
+[ADD] Process 5 added to the queue at time 8.32204818725586, shots: 1000.
+[ADD] Process 6 added to the queue at time 15.718867778778076, shots: 1000.
+[HARDWARE RESULT] {0: {'00': 966, '10': 30, '11': 3, '01': 1}}
+[PROCESS FINISH] Process 0 finished all shots at time 16.613523244857788.
+[PROCESS FIDELITY] Process 0 fidelity: 0.966
+[PROCESS WAITING TIME] Process 0 waiting time: 14.67958664894104 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P1: DQ=10, HQ=0, Shots=1000----P2: DQ=6, HQ=0, Shots=1000----P3: DQ=14, HQ=0, Shots=1000----P4: DQ=12, HQ=0, Shots=1000----P5: DQ=10, HQ=0, Shots=1000----P6: DQ=12, HQ=0, Shots=1000----
+[ADD] Process 7 added to the queue at time 16.924628019332886, shots: 1000.
+[ADD] Process 8 added to the queue at time 20.529232263565063, shots: 1000.
+[UTILITY] New batch has utility 0.07518796992481203.
+[PROCESS COUNT] New batch has 1 processes.
+[ADD] Process 9 added to the queue at time 22.745765447616577, shots: 1000.
+[ADD] Process 10 added to the queue at time 23.193132162094116, shots: 1000.
+[ADD] Process 11 added to the queue at time 23.362546682357788, shots: 1000.
+[ADD] Process 12 added to the queue at time 23.82868981361389, shots: 1000.
+[ADD] Process 13 added to the queue at time 24.420886516571045, shots: 1000.
+[ADD] Process 14 added to the queue at time 26.51642894744873, shots: 1000.
+[ADD] Process 15 added to the queue at time 26.581201314926147, shots: 1000.
+[ADD] Process 16 added to the queue at time 26.813477516174316, shots: 1000.
+[ADD] Process 17 added to the queue at time 27.09265446662903, shots: 1000.
+[ADD] Process 18 added to the queue at time 29.136412620544434, shots: 1000.
+[ADD] Process 19 added to the queue at time 30.44724416732788, shots: 1000.
+[ADD] Process 20 added to the queue at time 30.525588035583496, shots: 1000.
+[ADD] Process 21 added to the queue at time 31.034478902816772, shots: 1000.
+[ADD] Process 22 added to the queue at time 31.145946741104126, shots: 1000.
+[HARDWARE RESULT] {1: {'11111': 459, '10011': 12, '01110': 7, '11101': 132, '11011': 80, '10111': 48, '11000': 8, '01111': 55, '11110': 49, '00001': 3, '10110': 10, '11001': 29, '01101': 17, '01011': 13, '11010': 10, '10101': 18, '01001': 3, '01100': 4, '00101': 3, '11100': 17, '00111': 5, '00011': 5, '10100': 5, '00110': 2, '01000': 1, '10000': 2, '10001': 3}}
+[PROCESS FINISH] Process 1 finished all shots at time 32.01988744735718.
+[PROCESS FIDELITY] Process 1 fidelity: 0.4590000000000002
+[PROCESS WAITING TIME] Process 1 waiting time: 27.82923436164856 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P2: DQ=6, HQ=0, Shots=1000----P3: DQ=14, HQ=0, Shots=1000----P4: DQ=12, HQ=0, Shots=1000----P5: DQ=10, HQ=0, Shots=1000----P6: DQ=12, HQ=0, Shots=1000----P7: DQ=6, HQ=0, Shots=1000----P8: DQ=4, HQ=0, Shots=1000----P9: DQ=4, HQ=0, Shots=1000----P10: DQ=12, HQ=0, Shots=1000----P11: DQ=4, HQ=0, Shots=1000----P12: DQ=10, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=14, HQ=0, Shots=1000----P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----
+[ADD] Process 23 added to the queue at time 32.519519567489624, shots: 1000.
+[UTILITY] New batch has utility 0.045112781954887216.
+[PROCESS COUNT] New batch has 1 processes.
+[ADD] Process 24 added to the queue at time 36.96219444274902, shots: 1000.
+[ADD] Process 25 added to the queue at time 37.43615770339966, shots: 1000.
+[ADD] Process 26 added to the queue at time 37.544246673583984, shots: 1000.
+[ADD] Process 27 added to the queue at time 37.97742199897766, shots: 1000.
+[ADD] Process 28 added to the queue at time 39.14419174194336, shots: 1000.
+[ADD] Process 29 added to the queue at time 47.30226397514343, shots: 1000.
+[HARDWARE RESULT] {2: {'111': 819, '110': 47, '100': 13, '101': 41, '011': 71, '001': 4, '010': 5}}
+[PROCESS FINISH] Process 2 finished all shots at time 47.67677092552185.
+[PROCESS FIDELITY] Process 2 fidelity: 0.819
+[PROCESS WAITING TIME] Process 2 waiting time: 42.94504761695862 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P3: DQ=14, HQ=0, Shots=1000----P4: DQ=12, HQ=0, Shots=1000----P5: DQ=10, HQ=0, Shots=1000----P6: DQ=12, HQ=0, Shots=1000----P7: DQ=6, HQ=0, Shots=1000----P8: DQ=4, HQ=0, Shots=1000----P9: DQ=4, HQ=0, Shots=1000----P10: DQ=12, HQ=0, Shots=1000----P11: DQ=4, HQ=0, Shots=1000----P12: DQ=10, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=14, HQ=0, Shots=1000----P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.10526315789473684.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {3: {'1101101': 5, '1111111': 288, '1011111': 61, '1011100': 7, '1011001': 5, '1110110': 10, '0101011': 1, '1010111': 18, '1110011': 13, '1001110': 2, '0110111': 11, '1011110': 6, '1001111': 9, '0111111': 35, '1111011': 46, '0101111': 19, '1001011': 5, '1110111': 63, '1111110': 40, '1011011': 18, '0011110': 2, '1110010': 3, '1101010': 3, '1111001': 9, '1111010': 5, '1101111': 37, '1011101': 12, '1110100': 3, '1111101': 76, '1010101': 4, '1101110': 6, '0111101': 12, '0110101': 2, '1011000': 2, '1100111': 11, '1110101': 12, '0010010': 1, '0011010': 1, '1111100': 11, '1000111': 8, '1010011': 7, '0011111': 17, '1101011': 6, '0010111': 4, '0010011': 3, '1101001': 3, '1000010': 1, '0000101': 1, '1010110': 2, '0111110': 4, '0100011': 1, '0101101': 4, '0111100': 3, '0110011': 2, '0001111': 4, '0100111': 2, '0010110': 1, '1010001': 2, '1100010': 3, '1011010': 2, '0111011': 3, '0001011': 5, '0110010': 1, '0001100': 1, '0000111': 2, '1010100': 1, '0011101': 2, '0001101': 2, '0101001': 1, '1110001': 4, '1001001': 2, '1000001': 2, '1100101': 2, '1000110': 1, '0010001': 1, '0001001': 1, '0101010': 1, '1100001': 1, '0100010': 1, '0101110': 3, '0111000': 1, '0001110': 1, '1000011': 3, '0111001': 1, '1101100': 1, '0111010': 1, '1100011': 1}}
+[PROCESS FINISH] Process 3 finished all shots at time 62.55973982810974.
+[PROCESS FIDELITY] Process 3 fidelity: 0.2880000000000008
+[PROCESS WAITING TIME] Process 3 waiting time: 56.45243859291077 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P4: DQ=12, HQ=0, Shots=1000----P5: DQ=10, HQ=0, Shots=1000----P6: DQ=12, HQ=0, Shots=1000----P7: DQ=6, HQ=0, Shots=1000----P8: DQ=4, HQ=0, Shots=1000----P9: DQ=4, HQ=0, Shots=1000----P10: DQ=12, HQ=0, Shots=1000----P11: DQ=4, HQ=0, Shots=1000----P12: DQ=10, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=14, HQ=0, Shots=1000----P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.09022556390977443.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {4: {'111111': 406, '111010': 6, '011011': 13, '111000': 6, '010111': 9, '111101': 34, '111001': 10, '011111': 67, '111011': 87, '000111': 3, '110110': 6, '011010': 4, '111110': 47, '110111': 56, '101101': 7, '110001': 3, '101011': 22, '101111': 81, '011110': 6, '001110': 4, '001101': 4, '001111': 22, '110011': 21, '001011': 3, '100111': 16, '111100': 7, '100011': 7, '100110': 2, '010011': 4, '101001': 2, '011000': 1, '001100': 1, '101110': 9, '110010': 3, '100100': 1, '110101': 4, '000011': 1, '011101': 3, '101010': 1, '110000': 1, '101000': 1, '110100': 1, '101100': 1, '000101': 2, '100010': 1, '100001': 2, '100101': 1, '001001': 1}}
+[PROCESS FINISH] Process 4 finished all shots at time 79.67710018157959.
+[PROCESS FIDELITY] Process 4 fidelity: 0.4060000000000007
+[PROCESS WAITING TIME] Process 4 waiting time: 72.7550356388092 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P5: DQ=10, HQ=0, Shots=1000----P6: DQ=12, HQ=0, Shots=1000----P7: DQ=6, HQ=0, Shots=1000----P8: DQ=4, HQ=0, Shots=1000----P9: DQ=4, HQ=0, Shots=1000----P10: DQ=12, HQ=0, Shots=1000----P11: DQ=4, HQ=0, Shots=1000----P12: DQ=10, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=14, HQ=0, Shots=1000----P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.07518796992481203.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {5: {'10000': 62, '00100': 48, '00000': 722, '00110': 4, '00010': 47, '00011': 15, '00001': 60, '10101': 4, '10100': 9, '10001': 9, '10010': 3, '10111': 2, '00101': 6, '10011': 6, '00111': 1, '10110': 1, '11000': 1}}
+[PROCESS FINISH] Process 5 finished all shots at time 94.6569414138794.
+[PROCESS FIDELITY] Process 5 fidelity: 0.722
+[PROCESS WAITING TIME] Process 5 waiting time: 86.33489322662354 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P6: DQ=12, HQ=0, Shots=1000----P7: DQ=6, HQ=0, Shots=1000----P8: DQ=4, HQ=0, Shots=1000----P9: DQ=4, HQ=0, Shots=1000----P10: DQ=12, HQ=0, Shots=1000----P11: DQ=4, HQ=0, Shots=1000----P12: DQ=10, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=14, HQ=0, Shots=1000----P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.09022556390977443.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {6: {'010100': 12, '000000': 652, '000011': 9, '101000': 3, '000010': 41, '001000': 49, '010000': 67, '000110': 5, '010010': 2, '000001': 19, '010101': 1, '000100': 62, '100000': 29, '101010': 1, '001101': 1, '000101': 2, '011000': 11, '001100': 9, '110000': 3, '001111': 1, '011100': 5, '001001': 2, '010001': 2, '110100': 1, '010110': 2, '011010': 2, '001110': 1, '010011': 1, '100010': 1, '001010': 3, '100100': 1}}
+[PROCESS FINISH] Process 6 finished all shots at time 109.4629135131836.
+[PROCESS FIDELITY] Process 6 fidelity: 0.6519999999999999
+[PROCESS WAITING TIME] Process 6 waiting time: 93.74404573440552 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P7: DQ=6, HQ=0, Shots=1000----P8: DQ=4, HQ=0, Shots=1000----P9: DQ=4, HQ=0, Shots=1000----P10: DQ=12, HQ=0, Shots=1000----P11: DQ=4, HQ=0, Shots=1000----P12: DQ=10, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=14, HQ=0, Shots=1000----P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.045112781954887216.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {7: {'000': 775, '100': 62, '011': 24, '010': 65, '001': 61, '101': 8, '110': 4, '111': 1}}
+[PROCESS FINISH] Process 7 finished all shots at time 124.784738779068.
+[PROCESS FIDELITY] Process 7 fidelity: 0.775
+[PROCESS WAITING TIME] Process 7 waiting time: 107.86011075973511 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P8: DQ=4, HQ=0, Shots=1000----P9: DQ=4, HQ=0, Shots=1000----P10: DQ=12, HQ=0, Shots=1000----P11: DQ=4, HQ=0, Shots=1000----P12: DQ=10, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=14, HQ=0, Shots=1000----P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.03007518796992481.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {8: {'11': 893, '01': 55, '10': 35, '00': 17}}
+[PROCESS FINISH] Process 8 finished all shots at time 142.74657082557678.
+[PROCESS FIDELITY] Process 8 fidelity: 0.893
+[PROCESS WAITING TIME] Process 8 waiting time: 122.21733856201172 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P9: DQ=4, HQ=0, Shots=1000----P10: DQ=12, HQ=0, Shots=1000----P11: DQ=4, HQ=0, Shots=1000----P12: DQ=10, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=14, HQ=0, Shots=1000----P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.03007518796992481.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {9: {'00': 960, '10': 24, '01': 9, '11': 7}}
+[PROCESS FINISH] Process 9 finished all shots at time 160.40011978149414.
+[PROCESS FIDELITY] Process 9 fidelity: 0.96
+[PROCESS WAITING TIME] Process 9 waiting time: 137.65435433387756 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P10: DQ=12, HQ=0, Shots=1000----P11: DQ=4, HQ=0, Shots=1000----P12: DQ=10, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=14, HQ=0, Shots=1000----P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.09022556390977443.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {10: {'000000': 694, '110000': 17, '011011': 1, '100100': 2, '100000': 30, '000101': 4, '000001': 34, '000100': 23, '000010': 39, '001000': 45, '011000': 8, '010011': 6, '010000': 48, '001101': 1, '001111': 1, '000011': 9, '000110': 7, '010100': 1, '010101': 3, '010001': 2, '000111': 2, '100010': 5, '001100': 1, '011100': 1, '001001': 2, '111000': 2, '010010': 1, '111011': 1, '001010': 2, '110001': 1, '010110': 1, '101000': 5, '100101': 1}}
+[PROCESS FINISH] Process 10 finished all shots at time 174.37227630615234.
+[PROCESS FIDELITY] Process 10 fidelity: 0.694
+[PROCESS WAITING TIME] Process 10 waiting time: 151.17914414405823 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P11: DQ=4, HQ=0, Shots=1000----P12: DQ=10, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=14, HQ=0, Shots=1000----P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.03007518796992481.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {11: {'00': 956, '10': 37, '01': 7}}
+[PROCESS FINISH] Process 11 finished all shots at time 189.0056586265564.
+[PROCESS FIDELITY] Process 11 fidelity: 0.956
+[PROCESS WAITING TIME] Process 11 waiting time: 165.6431119441986 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P12: DQ=10, HQ=0, Shots=1000----P13: DQ=8, HQ=0, Shots=1000----P14: DQ=14, HQ=0, Shots=1000----P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.07518796992481203.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {12: {'01000': 48, '00011': 19, '00001': 20, '00010': 27, '00000': 720, '00100': 71, '01100': 6, '10000': 44, '10100': 11, '01010': 2, '10010': 2, '00110': 4, '11100': 6, '01011': 2, '11000': 8, '00101': 2, '10110': 1, '00111': 2, '10101': 2, '01001': 1, '11010': 1, '10001': 1}}
+[PROCESS FINISH] Process 12 finished all shots at time 205.83947849273682.
+[PROCESS FIDELITY] Process 12 fidelity: 0.72
+[PROCESS WAITING TIME] Process 12 waiting time: 182.01078867912292 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P13: DQ=8, HQ=0, Shots=1000----P14: DQ=14, HQ=0, Shots=1000----P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.06015037593984962.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {13: {'1111': 660, '1110': 63, '0111': 90, '0101': 10, '1101': 61, '1011': 57, '1100': 10, '0110': 8, '1010': 10, '0100': 4, '0010': 3, '1001': 6, '1000': 7, '0011': 8, '0001': 3}}
+[PROCESS FINISH] Process 13 finished all shots at time 221.22492456436157.
+[PROCESS FIDELITY] Process 13 fidelity: 0.6599999999999999
+[PROCESS WAITING TIME] Process 13 waiting time: 196.80403804779053 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P14: DQ=14, HQ=0, Shots=1000----P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.10526315789473684.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {14: {'0000000': 477, '0110000': 18, '0010000': 130, '0100011': 6, '0000010': 65, '0010010': 19, '0000100': 25, '0000110': 7, '0001100': 4, '0100000': 48, '0000001': 13, '0000011': 12, '1000010': 9, '0001000': 28, '0010100': 6, '0001010': 6, '0011000': 11, '0010001': 4, '1000000': 29, '1011000': 2, '0100100': 5, '0011001': 2, '0010011': 4, '0101010': 3, '1001000': 2, '0100010': 10, '0111000': 1, '0101100': 2, '1100000': 6, '0011010': 3, '0001001': 3, '1010100': 1, '0110100': 3, '1010011': 1, '0111100': 3, '1010001': 2, '0100001': 3, '1000001': 3, '0101000': 5, '0110110': 1, '0011100': 1, '0101001': 2, '0110001': 1, '0110011': 2, '0101101': 1, '0000101': 3, '0001011': 1, '0110010': 2, '1010010': 1, '1111011': 1, '1010000': 1, '1000101': 1, '0000111': 1}}
+[PROCESS FINISH] Process 14 finished all shots at time 237.15853691101074.
+[PROCESS FIDELITY] Process 14 fidelity: 0.4770000000000001
+[PROCESS WAITING TIME] Process 14 waiting time: 210.642107963562 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P15: DQ=4, HQ=0, Shots=1000----P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.03007518796992481.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {15: {'00': 970, '10': 11, '01': 15, '11': 4}}
+[PROCESS FINISH] Process 15 finished all shots at time 251.7215232849121.
+[PROCESS FIDELITY] Process 15 fidelity: 0.97
+[PROCESS WAITING TIME] Process 15 waiting time: 225.14032196998596 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P16: DQ=12, HQ=0, Shots=1000----P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.09022556390977443.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {16: {'000000': 623, '110000': 4, '011000': 6, '000111': 2, '000001': 89, '010000': 48, '100001': 5, '101010': 1, '001001': 4, '001000': 51, '000100': 22, '000010': 45, '000110': 9, '100010': 1, '001100': 4, '010001': 11, '000011': 17, '000101': 7, '111000': 3, '100000': 21, '101000': 4, '100011': 2, '101110': 1, '011001': 2, '011010': 2, '111100': 1, '001010': 4, '010010': 5, '001110': 2, '100100': 1, '010101': 1, '011100': 1, '101001': 1}}
+[PROCESS FINISH] Process 16 finished all shots at time 266.9554991722107.
+[PROCESS FIDELITY] Process 16 fidelity: 0.623
+[PROCESS WAITING TIME] Process 16 waiting time: 240.14202165603638 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P17: DQ=4, HQ=0, Shots=1000----P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.03007518796992481.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {17: {'11': 882, '01': 37, '10': 74, '00': 7}}
+[PROCESS FINISH] Process 17 finished all shots at time 282.6878159046173.
+[PROCESS FIDELITY] Process 17 fidelity: 0.882
+[PROCESS WAITING TIME] Process 17 waiting time: 255.59516143798828 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P18: DQ=4, HQ=0, Shots=1000----P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.03007518796992481.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {18: {'00': 959, '10': 39, '01': 2}}
+[PROCESS FINISH] Process 18 finished all shots at time 322.06941390037537.
+[PROCESS FIDELITY] Process 18 fidelity: 0.959
+[PROCESS WAITING TIME] Process 18 waiting time: 292.93300127983093 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P19: DQ=10, HQ=0, Shots=1000----P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.07518796992481203.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {19: {'11011': 81, '11111': 533, '10111': 78, '01111': 81, '11110': 75, '11100': 16, '10110': 15, '00111': 10, '11101': 34, '11010': 13, '01011': 9, '10011': 9, '11000': 3, '01110': 14, '10010': 5, '11001': 7, '01010': 2, '00110': 1, '10100': 1, '10101': 3, '01001': 1, '01101': 4, '00011': 2, '10001': 1, '00101': 1, '10000': 1}}
+[PROCESS FINISH] Process 19 finished all shots at time 338.17227816581726.
+[PROCESS FIDELITY] Process 19 fidelity: 0.5329999999999999
+[PROCESS WAITING TIME] Process 19 waiting time: 307.7250339984894 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P20: DQ=12, HQ=0, Shots=1000----P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.09022556390977443.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {20: {'000000': 700, '000001': 27, '001000': 27, '000010': 48, '000011': 8, '011000': 5, '100000': 39, '010000': 43, '000100': 40, '000111': 3, '001101': 5, '110010': 2, '001010': 3, '100001': 2, '000101': 7, '010100': 2, '110000': 13, '010010': 4, '001001': 3, '001100': 3, '010011': 1, '101011': 1, '100100': 2, '101000': 3, '111000': 3, '010101': 1, '011001': 1, '111001': 1, '110100': 1, '000110': 1, '010111': 1}}
+[PROCESS FINISH] Process 20 finished all shots at time 353.0046536922455.
+[PROCESS FIDELITY] Process 20 fidelity: 0.7
+[PROCESS WAITING TIME] Process 20 waiting time: 322.479065656662 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P21: DQ=10, HQ=0, Shots=1000----P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.07518796992481203.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {21: {'00000': 819, '00010': 45, '00100': 41, '10001': 3, '00110': 5, '10000': 27, '00001': 19, '01000': 13, '00011': 9, '10100': 6, '10010': 2, '10101': 1, '10111': 1, '10011': 2, '00101': 1, '01100': 2, '01001': 2, '11000': 2}}
+[PROCESS FINISH] Process 21 finished all shots at time 368.468115568161.
+[PROCESS FIDELITY] Process 21 fidelity: 0.819
+[PROCESS WAITING TIME] Process 21 waiting time: 337.43363666534424 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P22: DQ=14, HQ=0, Shots=1000----P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.10526315789473684.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {22: {'0000000': 531, '0000010': 38, '0001010': 6, '0000001': 100, '1100000': 7, '0001001': 11, '0001000': 55, '0100000': 31, '0000100': 35, '0010000': 25, '0001011': 7, '0000011': 17, '1000000': 35, '0100100': 2, '1000001': 8, '1010000': 1, '0000101': 10, '0011001': 2, '0110000': 6, '1000010': 3, '0101000': 8, '1000100': 1, '0011000': 2, '1110000': 3, '1101010': 1, '0001100': 12, '0100001': 4, '0011100': 1, '0111000': 1, '0100011': 1, '1001000': 2, '0010001': 6, '1100001': 3, '0000110': 3, '1111010': 1, '1100101': 1, '0010010': 3, '0010101': 1, '1001100': 3, '0100010': 2, '0010100': 2, '0101100': 1, '0101110': 1, '0101001': 1, '1010001': 1, '0110001': 1, '0101101': 1, '1001011': 1, '1110110': 1, '1001010': 1}}
+[PROCESS FINISH] Process 22 finished all shots at time 383.7993767261505.
+[PROCESS FIDELITY] Process 22 fidelity: 0.5309999999999999
+[PROCESS WAITING TIME] Process 22 waiting time: 352.6534299850464 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P23: DQ=6, HQ=0, Shots=1000----P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.045112781954887216.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {23: {'000': 924, '100': 16, '010': 23, '001': 23, '110': 3, '011': 10, '101': 1}}
+[PROCESS FINISH] Process 23 finished all shots at time 398.51176404953003.
+[PROCESS FIDELITY] Process 23 fidelity: 0.924
+[PROCESS WAITING TIME] Process 23 waiting time: 365.9922444820404 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P24: DQ=8, HQ=0, Shots=1000----P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.06015037593984962.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {24: {'0000': 827, '0100': 80, '0010': 33, '0101': 5, '1000': 9, '0001': 24, '1010': 1, '0111': 3, '0011': 10, '1100': 5, '0110': 2, '1011': 1}}
+[PROCESS FINISH] Process 24 finished all shots at time 413.07415294647217.
+[PROCESS FIDELITY] Process 24 fidelity: 0.827
+[PROCESS WAITING TIME] Process 24 waiting time: 376.11195850372314 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P25: DQ=14, HQ=0, Shots=1000----P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.10526315789473684.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {25: {'0111111': 47, '1111111': 262, '1110111': 40, '1101010': 6, '0011111': 11, '1011110': 10, '1101111': 83, '1011101': 9, '1110011': 5, '1101100': 7, '1110110': 11, '1010111': 7, '0111110': 17, '1111110': 51, '1111011': 35, '0001111': 3, '1111100': 22, '1100100': 2, '1011111': 41, '0101111': 16, '1111101': 54, '0110111': 10, '1011011': 6, '1001111': 15, '1101001': 4, '1111010': 7, '1100110': 7, '0110101': 4, '1010011': 2, '1101110': 15, '0111011': 17, '0011011': 4, '0111001': 4, '1110100': 4, '0111101': 11, '0111010': 2, '1110001': 3, '0111100': 4, '1001100': 4, '0101100': 2, '1110010': 3, '1110101': 6, '1100101': 5, '1101101': 10, '1000011': 1, '1111001': 6, '1101011': 11, '0100101': 1, '1100010': 1, '1100000': 1, '0001011': 2, '1011000': 4, '1100111': 13, '1101000': 2, '0101110': 4, '0110001': 1, '1100001': 1, '0010111': 3, '1000110': 1, '1010000': 2, '0110011': 3, '0001100': 1, '0011101': 3, '1010101': 4, '0111000': 2, '0010011': 1, '0011110': 3, '1011010': 1, '0011000': 1, '1001011': 2, '1111000': 4, '1110000': 2, '0101101': 2, '0100111': 2, '0101001': 1, '1001110': 4, '1010110': 2, '0001101': 3, '1000101': 1, '0010101': 1, '1011100': 2, '1001000': 1, '1100011': 1, '1000010': 2, '0110110': 1, '0001001': 1, '1001101': 2, '1001010': 2, '0100110': 1, '0101011': 1, '0101010': 1}}
+[PROCESS FINISH] Process 25 finished all shots at time 431.9632248878479.
+[PROCESS FIDELITY] Process 25 fidelity: 0.26200000000000057
+[PROCESS WAITING TIME] Process 25 waiting time: 394.52706718444824 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P26: DQ=8, HQ=0, Shots=1000----P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.06015037593984962.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {26: {'1111': 593, '1010': 21, '0011': 10, '1101': 111, '1001': 15, '1011': 73, '1110': 63, '1100': 21, '0111': 53, '0101': 7, '0001': 5, '0100': 2, '1000': 12, '0110': 10, '0010': 3, '0000': 1}}
+[PROCESS FINISH] Process 26 finished all shots at time 446.73118829727173.
+[PROCESS FIDELITY] Process 26 fidelity: 0.593
+[PROCESS WAITING TIME] Process 26 waiting time: 409.18694162368774 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P27: DQ=12, HQ=0, Shots=1000----P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.09022556390977443.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {27: {'000111': 3, '111101': 128, '111111': 463, '111011': 55, '110111': 49, '011111': 32, '101001': 7, '111110': 57, '101101': 11, '111001': 27, '011011': 6, '101111': 50, '110110': 6, '100101': 2, '101011': 12, '110100': 2, '111000': 4, '111010': 12, '110011': 6, '101110': 3, '010111': 1, '100111': 9, '110101': 10, '101100': 1, '001111': 2, '111100': 16, '100110': 2, '011101': 7, '011110': 5, '010011': 1, '011100': 1, '001101': 1, '011001': 3, '100011': 3, '001011': 1, '110001': 1, '100001': 1}}
+[PROCESS FINISH] Process 27 finished all shots at time 465.11807084083557.
+[PROCESS FIDELITY] Process 27 fidelity: 0.4630000000000004
+[PROCESS WAITING TIME] Process 27 waiting time: 427.1406488418579 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P28: DQ=10, HQ=0, Shots=1000----P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.07518796992481203.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {28: {'11101': 159, '11111': 471, '10111': 51, '11011': 44, '11110': 78, '11100': 43, '01111': 48, '01101': 14, '10110': 11, '11000': 6, '10101': 16, '01000': 1, '00111': 9, '01100': 3, '00101': 2, '01110': 5, '11010': 12, '11001': 10, '01011': 4, '10010': 3, '10100': 3, '10000': 1, '01001': 3, '00110': 3}}
+[PROCESS FINISH] Process 28 finished all shots at time 481.67245841026306.
+[PROCESS FIDELITY] Process 28 fidelity: 0.4710000000000002
+[PROCESS WAITING TIME] Process 28 waiting time: 442.5282666683197 seconds
+[QUEUE STATUS] [PROCESS QUEUE] P29: DQ=8, HQ=0, Shots=1000----
+[UTILITY] New batch has utility 0.06015037593984962.
+[PROCESS COUNT] New batch has 1 processes.
+[HARDWARE RESULT] {29: {'0000': 816, '0100': 33, '0001': 23, '0010': 30, '1000': 72, '1100': 10, '1010': 3, '0101': 3, '1001': 2, '0011': 2, '0110': 4, '1011': 2}}
+[PROCESS FINISH] Process 29 finished all shots at time 497.7100245952606.
+[PROCESS FIDELITY] Process 29 fidelity: 0.816
+[PROCESS WAITING TIME] Process 29 waiting time: 450.4077606201172 seconds
+[QUEUE STATUS] [PROCESS QUEUE] 
+[STOP] Scheduling stopped at time 498.3314907550812.
+------------------Statistics:---------------------------------Total running time: 498.02987837791443
+Finished process count: 30
+Throughput: 
+0.06023734981063814
+----------------------Batch statistics-----------------------:
+Batch 0: Number of processes: 1, Qubit utilization: 0.03007518796992481
+Batch 1: Number of processes: 1, Qubit utilization: 0.07518796992481203
+Batch 2: Number of processes: 1, Qubit utilization: 0.045112781954887216
+Batch 3: Number of processes: 1, Qubit utilization: 0.10526315789473684
+Batch 4: Number of processes: 1, Qubit utilization: 0.09022556390977443
+Batch 5: Number of processes: 1, Qubit utilization: 0.07518796992481203
+Batch 6: Number of processes: 1, Qubit utilization: 0.09022556390977443
+Batch 7: Number of processes: 1, Qubit utilization: 0.045112781954887216
+Batch 8: Number of processes: 1, Qubit utilization: 0.03007518796992481
+Batch 9: Number of processes: 1, Qubit utilization: 0.03007518796992481
+Batch 10: Number of processes: 1, Qubit utilization: 0.09022556390977443
+Batch 11: Number of processes: 1, Qubit utilization: 0.03007518796992481
+Batch 12: Number of processes: 1, Qubit utilization: 0.07518796992481203
+Batch 13: Number of processes: 1, Qubit utilization: 0.06015037593984962
+Batch 14: Number of processes: 1, Qubit utilization: 0.10526315789473684
+Batch 15: Number of processes: 1, Qubit utilization: 0.03007518796992481
+Batch 16: Number of processes: 1, Qubit utilization: 0.09022556390977443
+Batch 17: Number of processes: 1, Qubit utilization: 0.03007518796992481
+Batch 18: Number of processes: 1, Qubit utilization: 0.03007518796992481
+Batch 19: Number of processes: 1, Qubit utilization: 0.07518796992481203
+Batch 20: Number of processes: 1, Qubit utilization: 0.09022556390977443
+Batch 21: Number of processes: 1, Qubit utilization: 0.07518796992481203
+Batch 22: Number of processes: 1, Qubit utilization: 0.10526315789473684
+Batch 23: Number of processes: 1, Qubit utilization: 0.045112781954887216
+Batch 24: Number of processes: 1, Qubit utilization: 0.06015037593984962
+Batch 25: Number of processes: 1, Qubit utilization: 0.10526315789473684
+Batch 26: Number of processes: 1, Qubit utilization: 0.06015037593984962
+Batch 27: Number of processes: 1, Qubit utilization: 0.09022556390977443
+Batch 28: Number of processes: 1, Qubit utilization: 0.07518796992481203
+Batch 29: Number of processes: 1, Qubit utilization: 0.06015037593984962
+Average number of processes per batch: 1.0
+Average qubit utility per batch: 0.06666666666666664
+----------------------Process waiting times-----------------------:
+Process 0: 14.67958664894104
+Process 1: 27.82923436164856
+Process 2: 42.94504761695862
+Process 3: 56.45243859291077
+Process 4: 72.7550356388092
+Process 5: 86.33489322662354
+Process 6: 93.74404573440552
+Process 7: 107.86011075973511
+Process 8: 122.21733856201172
+Process 9: 137.65435433387756
+Process 10: 151.17914414405823
+Process 11: 165.6431119441986
+Process 12: 182.01078867912292
+Process 13: 196.80403804779053
+Process 14: 210.642107963562
+Process 15: 225.14032196998596
+Process 16: 240.14202165603638
+Process 17: 255.59516143798828
+Process 18: 292.93300127983093
+Process 19: 307.7250339984894
+Process 20: 322.479065656662
+Process 21: 337.43363666534424
+Process 22: 352.6534299850464
+Process 23: 365.9922444820404
+Process 24: 376.11195850372314
+Process 25: 394.52706718444824
+Process 26: 409.18694162368774
+Process 27: 427.1406488418579
+Process 28: 442.5282666683197
+Process 29: 450.4077606201172
+Average waiting time across all processes: 228.95826122760772
+----------------------Process fidelities-----------------------:
+Process 0: 0.966
+Process 1: 0.4590000000000002
+Process 2: 0.819
+Process 3: 0.2880000000000008
+Process 4: 0.4060000000000007
+Process 5: 0.722
+Process 6: 0.6519999999999999
+Process 7: 0.775
+Process 8: 0.893
+Process 9: 0.96
+Process 10: 0.694
+Process 11: 0.956
+Process 12: 0.72
+Process 13: 0.6599999999999999
+Process 14: 0.4770000000000001
+Process 15: 0.97
+Process 16: 0.623
+Process 17: 0.882
+Process 18: 0.959
+Process 19: 0.5329999999999999
+Process 20: 0.7
+Process 21: 0.819
+Process 22: 0.5309999999999999
+Process 23: 0.924
+Process 24: 0.827
+Process 25: 0.26200000000000057
+Process 26: 0.593
+Process 27: 0.4630000000000004
+Process 28: 0.4710000000000002
+Process 29: 0.816
+Average fidelity across all processes: 0.6939999999999998
