@@ -323,11 +323,11 @@ benchmark_Option=benchmarktype.MULTI_CONTROLLED_X_MEDIUM
 fake_torino_backend=construct_fake_ibm_torino()
 
 
-# N_qubits=133
-# hardware_distance_pair=all_pairs_distances(N_qubits, torino_coupling_map())
-
 N_qubits=133
-hardware_distance_pair=all_pairs_distances(N_qubits, simple_30_qubit_coupling_map())
+hardware_distance_pair=all_pairs_distances(N_qubits, torino_coupling_map())
+
+# N_qubits=133
+# hardware_distance_pair=all_pairs_distances(N_qubits, simple_30_qubit_coupling_map())
 DIST_MATRIX = np.asarray(hardware_distance_pair, dtype=float)
 fake_backend=construct_fake_ibm_torino()
 
