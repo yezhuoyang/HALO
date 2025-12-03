@@ -1152,7 +1152,7 @@ def greedy_initial_mapping(process_list: List[process],
 def iteratively_find_the_best_mapping_for_data(
     process_list: List[process],
     n_qubits: int,
-    n_restarts: int = 200,
+    n_restarts: int = 30,
     steps_per_restart: int = 800,
     move_prob: float = 0.3,
     interrupt_event: Optional[threading.Event] = None,
@@ -1370,6 +1370,9 @@ class jobManager:
         # run SamplerV2 on the chosen backend
         sampler = Sampler(mode=backend)
         sampler.options.default_shots = shots
+
+        print("[Submitted] Job to IBMQ backend!", backend)
+
 
         job = sampler.run([isa_circuit])
         # Ensure it’s done so metrics/timestamps are populated
@@ -1806,7 +1809,11 @@ class haloScheduler:
         Return a Dict[int, tuple[int, int]] represent the data qubit mapping
         """
         self._mapping_interrupt_event.clear()
-        best_mapping=iteratively_find_the_best_mapping_for_data(process_batch,N_qubits,interrupt_event=self._mapping_interrupt_event)
+        """
+        For the very first batch, we are waiting to nothing so we can do less restarts
+        """
+        n_restarts = 30
+        best_mapping=iteratively_find_the_best_mapping_for_data(process_batch,N_qubits,n_restarts=n_restarts,interrupt_event=self._mapping_interrupt_event)
         return best_mapping
     
 
@@ -3412,9 +3419,9 @@ if __name__ == "__main__":
 
     #run_experiment_on_multiX_medium()
     #run_experiment_on_random_small()
-    #run_experiment_on_qec_medium()
+    run_experiment_on_qec_medium()
 
-    run_experiment_on_arithmetic_small()
+    #run_experiment_on_arithmetic_small()
 
 
     #run_experiment_on_random_medium()
