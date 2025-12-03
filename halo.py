@@ -218,24 +218,19 @@ classical_logic_small_benchmark={
 
 
 classical_logic_medium_benchmark = {
-    0:  "varnum_7_d_4_0",
-    1:  "varnum_7_d_4_1",
-    2:  "varnum_7_d_5_1",
-    3:  "varnum_8_d_4_0",
-    4:  "varnum_8_d_5_1",
-    5:  "varnum_9_d_3_0",
-    6:  "varnum_9_d_3_1",
-    7:  "varnum_9_d_4_0",
-    8:  "varnum_9_d_5_0",
-    9:  "varnum_10_d_3_0",
-    10: "varnum_10_d_4_0",
-    11: "varnum_10_d_4_1",
-    12: "varnum_11_d_4_0",
-    13: "varnum_11_d_4_1",
-    14: "varnum_12_d_4_0",
-    15: "varnum_12_d_4_1",
+    0:  "varnum_7_d_5_0",
+    1:  "varnum_7_d_5_1",
+    2:  "varnum_8_d_4_0",
+    3:  "varnum_8_d_5_0",
+    4:  "varnum_9_d_4_0",
+    5:  "varnum_10_d_3_0",
+    6:  "varnum_10_d_3_1",
+    7:  "varnum_10_d_4_0",
+    8:  "varnum_11_d_4_0",
+    9:  "varnum_11_d_4_1",
+    10: "varnum_12_d_4_0",
+    11: "varnum_12_d_4_1",
 }
-
 
 
 benchmark_type_to_benchmark={
@@ -3314,6 +3309,52 @@ def run_experiment_on_random_medium():
 
 
 
+def run_experiment_on_arithmetic_small():
+    global Scheduling_Option
+    global benchmark_Option
+
+
+    #Run the HALO scheduling first
+    Scheduling_Option = SchedulingOptions.HALO
+    benchmark_Option = benchmarktype.CLASSICAL_LOGIC_SMALL
+    log_path = "resultlog/arithsmall/halo.txt"  
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+    Scheduling_Option = SchedulingOptions.BASELINE_SEQUENTIAL
+    log_path = "resultlog/arithsmall/baseline_sequential.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+    #Run the no helper qubit scheduling
+    Scheduling_Option = SchedulingOptions.NO_SHARING
+    log_path = "resultlog/arithsmall/no_helper.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+
+
+def run_experiment_on_arithmetic_medium():
+    global Scheduling_Option
+    global benchmark_Option
+
+    #Run the HALO scheduling first
+    Scheduling_Option = SchedulingOptions.HALO
+    benchmark_Option = benchmarktype.CLASSICAL_LOGIC_MEDIUM
+    log_path = "resultlog/arithmedium/halo.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+    Scheduling_Option = SchedulingOptions.BASELINE_SEQUENTIAL
+    log_path = "resultlog/arithmedium/baseline_sequential.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+    #Run the no helper qubit scheduling
+    Scheduling_Option = SchedulingOptions.NO_SHARING
+    log_path = "resultlog/arithmedium/no_helper.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+
+
 
 def run_experiment_on_mix():
     global Scheduling_Option
@@ -3355,7 +3396,9 @@ def run_all_experiments():
     run_experiment_on_qec_medium()
     run_experiment_on_random_small()
     run_experiment_on_random_medium()
-
+    run_experiment_on_arithmetic_small()
+    run_experiment_on_arithmetic_medium()
+    run_experiment_on_mix()
 
 
 
@@ -3367,9 +3410,11 @@ if __name__ == "__main__":
     # run_experiment_on_multiX_small()
     # run_experiment_on_qec_small()
 
-    run_experiment_on_multiX_medium()
-    run_experiment_on_random_small()
-    run_experiment_on_qec_medium()
+    #run_experiment_on_multiX_medium()
+    #run_experiment_on_random_small()
+    #run_experiment_on_qec_medium()
+
+    run_experiment_on_arithmetic_small()
 
 
     #run_experiment_on_random_medium()

@@ -1,88 +1,13 @@
-# Expression: ((q1 & q2) | (q2 & q3))
+# Expression: ~(~(q2))
 q = alloc_data(4)
-s = alloc_helper(3)
-H s0
+s = alloc_helper(2)
 CNOT q2, s0
-Tdg s0
-CNOT q1, s0
-T s0
-CNOT q2, s0
-Tdg s0
-CNOT q1, s0
-T q2
-T s0
-H s0
-CNOT q1, q2
-T q1
-Tdg q2
-CNOT q1, q2
-H s1
-CNOT q3, s1
-Tdg s1
-CNOT q2, s1
-T s1
-CNOT q3, s1
-Tdg s1
-CNOT q2, s1
-T q3
-T s1
-H s1
-CNOT q2, q3
-T q2
-Tdg q3
-CNOT q2, q3
 X s0
-X s1
-H s2
-CNOT s1, s2
-Tdg s2
-CNOT s0, s2
-T s2
-CNOT s1, s2
-Tdg s2
-CNOT s0, s2
-T s1
-T s2
-H s2
-CNOT s0, s1
-T s0
-Tdg s1
 CNOT s0, s1
 X s1
+CNOT q2, s0
 X s0
-X s2
-H s1
-CNOT q3, s1
-Tdg s1
-CNOT q2, s1
-T s1
-CNOT q3, s1
-Tdg s1
-CNOT q2, s1
-T q3
-T s1
-H s1
-CNOT q2, q3
-T q2
-Tdg q3
-CNOT q2, q3
-deallocate_helper(s1)
-H s0
-CNOT q2, s0
-Tdg s0
-CNOT q1, s0
-T s0
-CNOT q2, s0
-Tdg s0
-CNOT q1, s0
-T q2
-T s0
-H s0
-CNOT q1, q2
-T q1
-Tdg q2
-CNOT q1, q2
 deallocate_helper(s0)
-c0 = MEASURE s2
-deallocate_helper(s2)
+c0 = MEASURE s1
+deallocate_helper(s1)
 deallocate_data(q)

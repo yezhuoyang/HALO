@@ -1,56 +1,506 @@
-# Expression: (~(~(~(q5))) & q8)
+# Expression: ((q8 & (~(q6) & (q7 | q6))) | ~(((q0 & q6) & (q1 & q1))))
 q = alloc_data(9)
-s = alloc_helper(8)
-CNOT q5, s0
+s = alloc_helper(23)
+CNOT q6, s0
 X s0
-CNOT s0, s1
+X q7
+X q6
+H s1
+CNOT q6, s1
+Tdg s1
+CNOT q7, s1
+T s1
+CNOT q6, s1
+Tdg s1
+CNOT q7, s1
+T q6
+T s1
+H s1
+CNOT q7, q6
+T q7
+Tdg q6
+CNOT q7, q6
+X q6
+X q7
 X s1
-CNOT q5, s0
-X s0
-deallocate_helper(s0)
+H s2
 CNOT s1, s2
-X s2
-CNOT q5, s3
-X s3
-CNOT s3, s1
+Tdg s2
+CNOT s0, s2
+T s2
+CNOT s1, s2
+Tdg s2
+CNOT s0, s2
+T s1
+T s2
+H s2
+CNOT s0, s1
+T s0
+Tdg s1
+CNOT s0, s1
+X q7
+X q6
+H s1
+CNOT q6, s1
+Tdg s1
+CNOT q7, s1
+T s1
+CNOT q6, s1
+Tdg s1
+CNOT q7, s1
+T q6
+T s1
+H s1
+CNOT q7, q6
+T q7
+Tdg q6
+CNOT q7, q6
+X q6
+X q7
 X s1
 deallocate_helper(s1)
-CNOT q5, s3
-X s3
-deallocate_helper(s3)
-H s4
-CNOT q8, s4
-Tdg s4
-CNOT s2, s4
-T s4
-CNOT q8, s4
-Tdg s4
-CNOT s2, s4
-T q8
-T s4
-H s4
-CNOT s2, q8
+CNOT q6, s0
+X s0
+deallocate_helper(s0)
+H s3
+CNOT s2, s3
+Tdg s3
+CNOT q8, s3
+T s3
+CNOT s2, s3
+Tdg s3
+CNOT q8, s3
 T s2
-Tdg q8
-CNOT s2, q8
-CNOT q5, s5
+T s3
+H s3
+CNOT q8, s2
+T q8
+Tdg s2
+CNOT q8, s2
+CNOT q6, s4
+X s4
+X q7
+X q6
+H s5
+CNOT q6, s5
+Tdg s5
+CNOT q7, s5
+T s5
+CNOT q6, s5
+Tdg s5
+CNOT q7, s5
+T q6
+T s5
+H s5
+CNOT q7, q6
+T q7
+Tdg q6
+CNOT q7, q6
+X q6
+X q7
 X s5
-CNOT s5, s6
-X s6
-CNOT q5, s5
+H s2
+CNOT s5, s2
+Tdg s2
+CNOT s4, s2
+T s2
+CNOT s5, s2
+Tdg s2
+CNOT s4, s2
+T s5
+T s2
+H s2
+CNOT s4, s5
+T s4
+Tdg s5
+CNOT s4, s5
+deallocate_helper(s2)
+X q7
+X q6
+H s5
+CNOT q6, s5
+Tdg s5
+CNOT q7, s5
+T s5
+CNOT q6, s5
+Tdg s5
+CNOT q7, s5
+T q6
+T s5
+H s5
+CNOT q7, q6
+T q7
+Tdg q6
+CNOT q7, q6
+X q6
+X q7
 X s5
 deallocate_helper(s5)
-CNOT s6, s2
-X s2
-deallocate_helper(s2)
-CNOT q5, s7
-X s7
-CNOT s7, s6
-X s6
-deallocate_helper(s6)
-CNOT q5, s7
-X s7
-deallocate_helper(s7)
-c0 = MEASURE s4
+CNOT q6, s4
+X s4
 deallocate_helper(s4)
+H s6
+CNOT q6, s6
+Tdg s6
+CNOT q0, s6
+T s6
+CNOT q6, s6
+Tdg s6
+CNOT q0, s6
+T q6
+T s6
+H s6
+CNOT q0, q6
+T q0
+Tdg q6
+CNOT q0, q6
+CNOT q1, s7
+H s8
+CNOT s7, s8
+Tdg s8
+CNOT s6, s8
+T s8
+CNOT s7, s8
+Tdg s8
+CNOT s6, s8
+T s7
+T s8
+H s8
+CNOT s6, s7
+T s6
+Tdg s7
+CNOT s6, s7
+CNOT q1, s7
+deallocate_helper(s7)
+H s6
+CNOT q6, s6
+Tdg s6
+CNOT q0, s6
+T s6
+CNOT q6, s6
+Tdg s6
+CNOT q0, s6
+T q6
+T s6
+H s6
+CNOT q0, q6
+T q0
+Tdg q6
+CNOT q0, q6
+deallocate_helper(s6)
+CNOT s8, s9
+X s9
+H s10
+CNOT q6, s10
+Tdg s10
+CNOT q0, s10
+T s10
+CNOT q6, s10
+Tdg s10
+CNOT q0, s10
+T q6
+T s10
+H s10
+CNOT q0, q6
+T q0
+Tdg q6
+CNOT q0, q6
+CNOT q1, s11
+H s8
+CNOT s11, s8
+Tdg s8
+CNOT s10, s8
+T s8
+CNOT s11, s8
+Tdg s8
+CNOT s10, s8
+T s11
+T s8
+H s8
+CNOT s10, s11
+T s10
+Tdg s11
+CNOT s10, s11
+deallocate_helper(s8)
+CNOT q1, s11
+deallocate_helper(s11)
+H s10
+CNOT q6, s10
+Tdg s10
+CNOT q0, s10
+T s10
+CNOT q6, s10
+Tdg s10
+CNOT q0, s10
+T q6
+T s10
+H s10
+CNOT q0, q6
+T q0
+Tdg q6
+CNOT q0, q6
+deallocate_helper(s10)
+X s3
+X s9
+H s12
+CNOT s9, s12
+Tdg s12
+CNOT s3, s12
+T s12
+CNOT s9, s12
+Tdg s12
+CNOT s3, s12
+T s9
+T s12
+H s12
+CNOT s3, s9
+T s3
+Tdg s9
+CNOT s3, s9
+X s9
+X s3
+X s12
+H s13
+CNOT q6, s13
+Tdg s13
+CNOT q0, s13
+T s13
+CNOT q6, s13
+Tdg s13
+CNOT q0, s13
+T q6
+T s13
+H s13
+CNOT q0, q6
+T q0
+Tdg q6
+CNOT q0, q6
+CNOT q1, s14
+H s15
+CNOT s14, s15
+Tdg s15
+CNOT s13, s15
+T s15
+CNOT s14, s15
+Tdg s15
+CNOT s13, s15
+T s14
+T s15
+H s15
+CNOT s13, s14
+T s13
+Tdg s14
+CNOT s13, s14
+CNOT q1, s14
+deallocate_helper(s14)
+H s13
+CNOT q6, s13
+Tdg s13
+CNOT q0, s13
+T s13
+CNOT q6, s13
+Tdg s13
+CNOT q0, s13
+T q6
+T s13
+H s13
+CNOT q0, q6
+T q0
+Tdg q6
+CNOT q0, q6
+deallocate_helper(s13)
+CNOT s15, s9
+X s9
+deallocate_helper(s9)
+H s16
+CNOT q6, s16
+Tdg s16
+CNOT q0, s16
+T s16
+CNOT q6, s16
+Tdg s16
+CNOT q0, s16
+T q6
+T s16
+H s16
+CNOT q0, q6
+T q0
+Tdg q6
+CNOT q0, q6
+CNOT q1, s17
+H s15
+CNOT s17, s15
+Tdg s15
+CNOT s16, s15
+T s15
+CNOT s17, s15
+Tdg s15
+CNOT s16, s15
+T s17
+T s15
+H s15
+CNOT s16, s17
+T s16
+Tdg s17
+CNOT s16, s17
+deallocate_helper(s15)
+CNOT q1, s17
+deallocate_helper(s17)
+H s16
+CNOT q6, s16
+Tdg s16
+CNOT q0, s16
+T s16
+CNOT q6, s16
+Tdg s16
+CNOT q0, s16
+T q6
+T s16
+H s16
+CNOT q0, q6
+T q0
+Tdg q6
+CNOT q0, q6
+deallocate_helper(s16)
+CNOT q6, s18
+X s18
+X q7
+X q6
+H s19
+CNOT q6, s19
+Tdg s19
+CNOT q7, s19
+T s19
+CNOT q6, s19
+Tdg s19
+CNOT q7, s19
+T q6
+T s19
+H s19
+CNOT q7, q6
+T q7
+Tdg q6
+CNOT q7, q6
+X q6
+X q7
+X s19
+H s20
+CNOT s19, s20
+Tdg s20
+CNOT s18, s20
+T s20
+CNOT s19, s20
+Tdg s20
+CNOT s18, s20
+T s19
+T s20
+H s20
+CNOT s18, s19
+T s18
+Tdg s19
+CNOT s18, s19
+X q7
+X q6
+H s19
+CNOT q6, s19
+Tdg s19
+CNOT q7, s19
+T s19
+CNOT q6, s19
+Tdg s19
+CNOT q7, s19
+T q6
+T s19
+H s19
+CNOT q7, q6
+T q7
+Tdg q6
+CNOT q7, q6
+X q6
+X q7
+X s19
+deallocate_helper(s19)
+CNOT q6, s18
+X s18
+deallocate_helper(s18)
+H s3
+CNOT s20, s3
+Tdg s3
+CNOT q8, s3
+T s3
+CNOT s20, s3
+Tdg s3
+CNOT q8, s3
+T s20
+T s3
+H s3
+CNOT q8, s20
+T q8
+Tdg s20
+CNOT q8, s20
+deallocate_helper(s3)
+CNOT q6, s21
+X s21
+X q7
+X q6
+H s22
+CNOT q6, s22
+Tdg s22
+CNOT q7, s22
+T s22
+CNOT q6, s22
+Tdg s22
+CNOT q7, s22
+T q6
+T s22
+H s22
+CNOT q7, q6
+T q7
+Tdg q6
+CNOT q7, q6
+X q6
+X q7
+X s22
+H s20
+CNOT s22, s20
+Tdg s20
+CNOT s21, s20
+T s20
+CNOT s22, s20
+Tdg s20
+CNOT s21, s20
+T s22
+T s20
+H s20
+CNOT s21, s22
+T s21
+Tdg s22
+CNOT s21, s22
+deallocate_helper(s20)
+X q7
+X q6
+H s22
+CNOT q6, s22
+Tdg s22
+CNOT q7, s22
+T s22
+CNOT q6, s22
+Tdg s22
+CNOT q7, s22
+T q6
+T s22
+H s22
+CNOT q7, q6
+T q7
+Tdg q6
+CNOT q7, q6
+X q6
+X q7
+X s22
+deallocate_helper(s22)
+CNOT q6, s21
+X s21
+deallocate_helper(s21)
+c0 = MEASURE s12
+deallocate_helper(s12)
 deallocate_data(q)

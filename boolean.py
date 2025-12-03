@@ -114,13 +114,19 @@ class BenchmarkCompiler:
         self.inst_list.append(instruction(Instype.RELEASE, [addr]))
         self.program_str += f"deallocate_helper({addr})\n"
 
+
     def emit_standard(self, inst_type: Instype, qubits: List[str]):
         """Emits a standard gate (not Toffoli)."""
+        # Safety: avoid CNOT on the same qubit
+        if inst_type == Instype.CNOT and len(qubits) == 2 and qubits[0] == qubits[1]:
+            raise ValueError(f"Refusing to emit CNOT on the same qubit: {qubits[0]}")
+
         inst = instruction(inst_type, qubits)
         self.inst_list.append(inst)
         q_str = ", ".join(qubits)
         cmd = get_gate_type_name(inst_type)
         self.program_str += f"{cmd} {q_str}\n"
+
 
     def emit_toffoli_decomposed(self, q1: str, q2: str, q3: str):
         """Injects the decomposed Toffoli sequence."""
@@ -128,29 +134,42 @@ class BenchmarkCompiler:
         self.inst_list.extend(new_insts)
         self.program_str += new_str
 
+
     def _apply_logic(self, op: str, a: str, b: str, out: str):
         """Applies logic. REPLACES standard Toffoli with the decomposition."""
         if op == 'NOT':
+            # b should be None for NOT
             self.emit_standard(Instype.CNOT, [a, out])
             self.emit_standard(Instype.X, [out])
-        
+
         elif op == 'AND':
-            # Replaced single Toffoli with decomposition
-            self.emit_toffoli_decomposed(a, b, out)
-        
+            # b must exist
+            if a == b:
+                # x & x = x  → just copy a into out
+                self.emit_standard(Instype.CNOT, [a, out])
+            else:
+                # General case: Toffoli decomposition
+                self.emit_toffoli_decomposed(a, b, out)
+
         elif op == 'OR':
-            # De Morgan: ~(~a & ~b)
-            # 1. Flip inputs
-            self.emit_standard(Instype.X, [a])
-            self.emit_standard(Instype.X, [b])
-            
-            # 2. Decomposed Toffoli
-            self.emit_toffoli_decomposed(a, b, out)
-            
-            # 3. Restore inputs and Flip output
-            self.emit_standard(Instype.X, [b]) 
-            self.emit_standard(Instype.X, [a]) 
-            self.emit_standard(Instype.X, [out])
+            # b must exist
+            if a == b:
+                # x | x = x → just copy a into out
+                self.emit_standard(Instype.CNOT, [a, out])
+            else:
+                # De Morgan: ~(~a & ~b)
+                # 1. Flip inputs
+                self.emit_standard(Instype.X, [a])
+                self.emit_standard(Instype.X, [b])
+
+                # 2. Decomposed Toffoli
+                self.emit_toffoli_decomposed(a, b, out)
+
+                # 3. Restore inputs and flip output
+                self.emit_standard(Instype.X, [b]) 
+                self.emit_standard(Instype.X, [a]) 
+                self.emit_standard(Instype.X, [out])
+
 
     def recurse(self, node: BooleanNode) -> str:
         # Base Case: Variable
@@ -418,9 +437,9 @@ def generate_arithm_small_benchmark():
     result_path = "benchmark/result2000shots/arithsmall"
     # (num_vars, depth, how many instances to generate)
     configs = [
-        # (3, 3, 2),
-        (3, 4, 2),
-        #(4, 2, 2),
+        (3, 3, 2),
+        # (3, 4, 2),
+        # (4, 2, 2),
         # (4, 3, 2),
         # (4, 4, 2),
     ]
@@ -451,14 +470,14 @@ def generate_arithm_medium_benchmark():
     result_path = "benchmark/result2000shots/arithmedium"
     # (num_vars, depth, how many instances to generate)
     configs = [
-        # (7, 5, 2),
+        #(7, 5, 2)
         # (8, 4, 1),
-        (8, 5, 1),
+        # (8, 5, 1),
         # (9, 5, 1),
         # (9, 4, 1),
         # (10, 3, 2),
         # (10, 4, 2),
-        # (11, 4, 2),
+        (11, 4, 2),
         # (12, 4, 2),
     ]
 
@@ -494,8 +513,8 @@ if __name__ == "__main__":
     # A,program=generate_decomposed_benchmark(num_vars=4, depth=3)
     # #print("Generated Benchmark Program:\n")
     # print(program)
-    generate_arithm_small_benchmark()
-    #generate_arithm_medium_benchmark()
+    #generate_arithm_small_benchmark()
+    generate_arithm_medium_benchmark()
 
 
 

@@ -1,159 +1,144 @@
-# Expression: (~(~(q0)) & (~(q1) & (q1 | q1)))
+# Expression: (((q2 | q0) | q0) & q1)
 q = alloc_data(4)
-s = alloc_helper(9)
+s = alloc_helper(4)
+X q2
+X q0
+H s0
 CNOT q0, s0
+Tdg s0
+CNOT q2, s0
+T s0
+CNOT q0, s0
+Tdg s0
+CNOT q2, s0
+T q0
+T s0
+H s0
+CNOT q2, q0
+T q2
+Tdg q0
+CNOT q2, q0
+X q0
+X q2
 X s0
+X s0
+X q0
+H s1
+CNOT q0, s1
+Tdg s1
 CNOT s0, s1
+T s1
+CNOT q0, s1
+Tdg s1
+CNOT s0, s1
+T q0
+T s1
+H s1
+CNOT s0, q0
+T s0
+Tdg q0
+CNOT s0, q0
+X q0
+X s0
 X s1
+X q2
+X q0
+H s0
 CNOT q0, s0
+Tdg s0
+CNOT q2, s0
+T s0
+CNOT q0, s0
+Tdg s0
+CNOT q2, s0
+T q0
+T s0
+H s0
+CNOT q2, q0
+T q2
+Tdg q0
+CNOT q2, q0
+X q0
+X q2
 X s0
 deallocate_helper(s0)
+H s2
 CNOT q1, s2
-X s2
-X q1
-X q1
-H s3
-CNOT q1, s3
-Tdg s3
-CNOT q1, s3
-T s3
-CNOT q1, s3
-Tdg s3
-CNOT q1, s3
-T q1
-T s3
-H s3
-CNOT q1, q1
-T q1
-Tdg q1
-CNOT q1, q1
-X q1
-X q1
-X s3
-H s4
-CNOT s3, s4
-Tdg s4
-CNOT s2, s4
-T s4
-CNOT s3, s4
-Tdg s4
-CNOT s2, s4
-T s3
-T s4
-H s4
-CNOT s2, s3
+Tdg s2
+CNOT s1, s2
 T s2
-Tdg s3
-CNOT s2, s3
-X q1
-X q1
-H s3
-CNOT q1, s3
-Tdg s3
-CNOT q1, s3
-T s3
-CNOT q1, s3
-Tdg s3
-CNOT q1, s3
-T q1
-T s3
-H s3
-CNOT q1, q1
-T q1
-Tdg q1
-CNOT q1, q1
-X q1
-X q1
-X s3
-deallocate_helper(s3)
 CNOT q1, s2
-X s2
-deallocate_helper(s2)
-H s5
-CNOT s4, s5
-Tdg s5
-CNOT s1, s5
-T s5
-CNOT s4, s5
-Tdg s5
-CNOT s1, s5
-T s4
-T s5
-H s5
-CNOT s1, s4
+Tdg s2
+CNOT s1, s2
+T q1
+T s2
+H s2
+CNOT s1, q1
 T s1
-Tdg s4
-CNOT s1, s4
-CNOT q1, s6
-X s6
-X q1
-X q1
-H s7
-CNOT q1, s7
-Tdg s7
-CNOT q1, s7
-T s7
-CNOT q1, s7
-Tdg s7
-CNOT q1, s7
-T q1
-T s7
-H s7
-CNOT q1, q1
-T q1
 Tdg q1
-CNOT q1, q1
-X q1
-X q1
-X s7
-H s4
-CNOT s7, s4
-Tdg s4
-CNOT s6, s4
-T s4
-CNOT s7, s4
-Tdg s4
-CNOT s6, s4
-T s7
-T s4
-H s4
-CNOT s6, s7
-T s6
-Tdg s7
-CNOT s6, s7
-deallocate_helper(s4)
-X q1
-X q1
-H s7
-CNOT q1, s7
-Tdg s7
-CNOT q1, s7
-T s7
-CNOT q1, s7
-Tdg s7
-CNOT q1, s7
-T q1
-T s7
-H s7
-CNOT q1, q1
-T q1
-Tdg q1
-CNOT q1, q1
-X q1
-X q1
-X s7
-deallocate_helper(s7)
-CNOT q1, s6
-X s6
-deallocate_helper(s6)
-CNOT q0, s8
-X s8
-CNOT s8, s1
+CNOT s1, q1
+X q2
+X q0
+H s3
+CNOT q0, s3
+Tdg s3
+CNOT q2, s3
+T s3
+CNOT q0, s3
+Tdg s3
+CNOT q2, s3
+T q0
+T s3
+H s3
+CNOT q2, q0
+T q2
+Tdg q0
+CNOT q2, q0
+X q0
+X q2
+X s3
+X s3
+X q0
+H s1
+CNOT q0, s1
+Tdg s1
+CNOT s3, s1
+T s1
+CNOT q0, s1
+Tdg s1
+CNOT s3, s1
+T q0
+T s1
+H s1
+CNOT s3, q0
+T s3
+Tdg q0
+CNOT s3, q0
+X q0
+X s3
 X s1
 deallocate_helper(s1)
-CNOT q0, s8
-X s8
-deallocate_helper(s8)
-c0 = MEASURE s5
-deallocate_helper(s5)
+X q2
+X q0
+H s3
+CNOT q0, s3
+Tdg s3
+CNOT q2, s3
+T s3
+CNOT q0, s3
+Tdg s3
+CNOT q2, s3
+T q0
+T s3
+H s3
+CNOT q2, q0
+T q2
+Tdg q0
+CNOT q2, q0
+X q0
+X q2
+X s3
+deallocate_helper(s3)
+c0 = MEASURE s2
+deallocate_helper(s2)
 deallocate_data(q)
