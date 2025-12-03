@@ -140,19 +140,60 @@ def plot_metric(metric_name, metric_data, ylabel, save_as=None):
 # Create both figures
 # --------------------------------------------------------
 
-plot_metric(
-    "Fidelity vs. Problem Size",
-    fidelity,
-    ylabel="Fidelity",
-    save_as="fidelity.pdf",
-)
 
-plot_metric(
-    "Waiting Time vs. Problem Size",
-    waiting_time,
-    ylabel="Waiting time (s)",
-    save_as="waiting_time.pdf",
-)
+
+
+
+
+def plot_fidelity_with_utility():
+    """
+    Use matplotlib to plot fidelity vs. utility
+    Save the figure as fidelity.pdf
+    """
+
+
+    fidelity = [0.694,0.352,0.2444,0.179]
+    utility = [0.06667,0.421,0.662,0.929]
+    plt.figure(figsize=(6,4))
+    plt.plot(utility, fidelity, marker='o')
+    plt.title("Fidelity vs. Utility")
+    plt.xlabel("Utility (percentage of data qubit usage)")
+    plt.ylabel("Fidelity")
+    plt.grid(True)
+    plt.savefig("fidelity_vs_utility.pdf", bbox_inches="tight", dpi=300)
+
+
+
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+
+
+
+    plot_fidelity_with_utility()
+
+    # plot_metric(
+    #     "Fidelity vs. Problem Size",
+    #     fidelity,
+    #     ylabel="Fidelity",
+    #     save_as="fidelity.pdf",
+    # )
+
+    # plot_metric(
+    #     "Waiting Time vs. Problem Size",
+    #     waiting_time,
+    #     ylabel="Waiting time (s)",
+    #     save_as="waiting_time.pdf",
+    # )
 
 # If running interactively:
 # plt.show()
+
+
+

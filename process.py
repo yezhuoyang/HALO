@@ -72,15 +72,13 @@ class circuit_topology:
 
 
 
-def analyze_topo_from_instructions(inst_list: List[instruction]) -> circuit_topology:
+def analyze_topo_from_instructions(num_data_qubit:int, num_helper_qubit:int, inst_list: List[instruction]) -> circuit_topology:
     """
     We analyze the instructions to extract the circuit topology.
     We only consider CNOT and CZ gates for interaction analysis.
     1) data-data interactions: both qubits are data qubits (q0, q1, ...)
     2) data-helper interactions: one qubit is data (q0, q1, ...), the other is helper (s0, s1, ...)
     """
-    data_qubit_set=set()
-    helper_qubit_set=set()
     data_interaction=[]
     data_helper_interaction=[]
 
@@ -91,29 +89,23 @@ def analyze_topo_from_instructions(inst_list: List[instruction]) -> circuit_topo
             if q1.startswith('q') and q2.startswith('q'):
                 dq1=int(q1[1:])
                 dq2=int(q2[1:])
-                data_qubit_set.add(dq1)
-                data_qubit_set.add(dq2)
                 a,b=sorted((dq1,dq2))
                 data_interaction.append( (a,b) )
             elif q1.startswith('q') and q2.startswith('s'):
                 dq=int(q1[1:])
                 sq=int(q2[1:])
-                data_qubit_set.add(dq)
-                helper_qubit_set.add(sq)
                 data_helper_interaction.append( (dq,sq) )
             elif q1.startswith('s') and q2.startswith('q'):
                 dq=int(q2[1:])
                 sq=int(q1[1:])
-                data_qubit_set.add(dq)
-                helper_qubit_set.add(sq)
                 data_helper_interaction.append( (dq,sq) )
             else:
                 #both are helper qubits, ignore
                 pass
 
     return circuit_topology(
-        data_qubit_number=len(data_qubit_set),
-        helper_qubit_number=len(helper_qubit_set),
+        data_qubit_number=num_data_qubit,
+        helper_qubit_number=num_helper_qubit,
         data_interaction=data_interaction,
         data_helper_interaction=data_helper_interaction,
     )
@@ -137,7 +129,7 @@ class process:
         self._process_id = process_id
         self._num_data_qubits = num_data_qubits
         self._num_helper_qubits = num_helper_qubits
-        self._topology = analyze_topo_from_instructions(inst_list)
+        self._topology = analyze_topo_from_instructions(num_data_qubits, num_helper_qubits, inst_list)
         self._inst_list = inst_list
         for inst in self._inst_list:
             inst.set_processID(process_id)

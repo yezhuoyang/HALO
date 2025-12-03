@@ -1,0 +1,8 @@
+# Expression: ~(q1)
+q = alloc_data(3)
+s = alloc_helper(1)
+CNOT q1, s0
+X s0
+c0 = MEASURE s0
+deallocate_helper(s0)
+deallocate_data(q)

@@ -1,0 +1,26 @@
+# Expression: (~(q2) & q2)
+q = alloc_data(7)
+s = alloc_helper(2)
+CNOT q2, s0
+X s0
+H s1
+CNOT q2, s1
+Tdg s1
+CNOT s0, s1
+T s1
+CNOT q2, s1
+Tdg s1
+CNOT s0, s1
+T q2
+T s1
+H s1
+CNOT s0, q2
+T s0
+Tdg q2
+CNOT s0, q2
+CNOT q2, s0
+X s0
+deallocate_helper(s0)
+c0 = MEASURE s1
+deallocate_helper(s1)
+deallocate_data(q)

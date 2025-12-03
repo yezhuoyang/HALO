@@ -109,9 +109,9 @@ def test_scheduling():
     )
 
 
-    total_measurements, measurement_to_process_map, scheduled_instructions = scheduler.dynamic_helper_scheduling(L, next_batch)
+    utility, total_measurements, measurement_to_process_map, scheduled_instructions = scheduler.dynamic_helper_scheduling(L, next_batch)
 
-    
+    print("Qubit Utilization:", utility)
     result=scheduler._jobmanager.execute_on_hardware(shots,total_measurements,measurement_to_process_map,scheduled_instructions)
     scheduler.update_process_queue(shots, result)
 
@@ -213,5 +213,5 @@ def test_sequential_scheduling():
 
 
 if __name__ == "__main__":
-    #test_scheduling()
-    test_sequential_scheduling()
+    test_scheduling()
+    #test_sequential_scheduling()

@@ -1,0 +1,56 @@
+# Expression: (~(~(~(q5))) & q8)
+q = alloc_data(9)
+s = alloc_helper(8)
+CNOT q5, s0
+X s0
+CNOT s0, s1
+X s1
+CNOT q5, s0
+X s0
+deallocate_helper(s0)
+CNOT s1, s2
+X s2
+CNOT q5, s3
+X s3
+CNOT s3, s1
+X s1
+deallocate_helper(s1)
+CNOT q5, s3
+X s3
+deallocate_helper(s3)
+H s4
+CNOT q8, s4
+Tdg s4
+CNOT s2, s4
+T s4
+CNOT q8, s4
+Tdg s4
+CNOT s2, s4
+T q8
+T s4
+H s4
+CNOT s2, q8
+T s2
+Tdg q8
+CNOT s2, q8
+CNOT q5, s5
+X s5
+CNOT s5, s6
+X s6
+CNOT q5, s5
+X s5
+deallocate_helper(s5)
+CNOT s6, s2
+X s2
+deallocate_helper(s2)
+CNOT q5, s7
+X s7
+CNOT s7, s6
+X s6
+deallocate_helper(s6)
+CNOT q5, s7
+X s7
+deallocate_helper(s7)
+c0 = MEASURE s4
+deallocate_helper(s4)
+deallocate_data(q)

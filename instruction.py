@@ -338,6 +338,17 @@ class instruction:
 
 
 
+    def is_scheduled(self) -> bool:
+        """
+        Check if the instruction has been scheduled (i.e., mapped to physical addresses).
+        
+        Returns:
+            bool: True if the instruction is scheduled, False otherwise.
+        """
+        return len(self._scheduled_mapped_address) == len(self._qubitaddress)
+
+
+
     def set_scheduled_mapped_address(self, virtualaddress: str, physicaladdress: int):
         """
         Set the scheduled mapped address for a given qubit address.
@@ -469,6 +480,7 @@ def construct_qiskit_circuit(num_data_qubit: int, num_syndrome_qubit: int, num_c
         qiskitaddress=[]
         for addr in addresses:
             if addr.startswith('s'):
+                print(addr)
                 qiskitaddress.append(syndromequbit[int(addr[1:])])
             else:
                 qiskitaddress.append(dataqubit[int(addr[1:])])
@@ -550,57 +562,91 @@ def _parse_float_list(s: str) -> List[float]:
     return [float(p) for p in parts if p]
 
 
-def _grab_params(text_after_gate: str) -> Tuple[List[float], str]:
+# def _grab_params(text_after_gate: str) -> Tuple[List[float], str]:
+#     """
+#     Given '(<params>) rest', return (params_list, rest_without_paren_prefix).
+#     If no parentheses, returns ([], original_text).
+#     """
+#     m = _param_list_re.match(text_after_gate.strip())
+#     if not m:
+#         return [], text_after_gate.strip()
+#     params = _parse_float_list(m.group(1))
+#     # remove the '(...)' prefix from the remaining text
+#     remainder = text_after_gate.strip()[m.end():].strip()
+#     return params, remainder
+
+
+def _grab_params(param_str: str) -> Tuple[List[float], str]:
     """
-    Given '(<params>) rest', return (params_list, rest_without_paren_prefix).
-    If no parentheses, returns ([], original_text).
+    Extracts numbers from parentheses and returns the remaining string.
+    Input: "(1.23, 4.56) q0" -> Returns: ([1.23, 4.56], " q0")
+    Input: " q0"             -> Returns: ([], " q0")
     """
-    m = _param_list_re.match(text_after_gate.strip())
-    if not m:
-        return [], text_after_gate.strip()
-    params = _parse_float_list(m.group(1))
-    # remove the '(...)' prefix from the remaining text
-    remainder = text_after_gate.strip()[m.end():].strip()
+    param_str = param_str.strip()
+    if not param_str.startswith("("):
+        return [], param_str
+    
+    # Find the closing parenthesis
+    try:
+        end_idx = param_str.index(")")
+    except ValueError:
+        raise ValueError(f"Missing closing parenthesis in parameters: {param_str}")
+
+    content = param_str[1:end_idx]
+    remainder = param_str[end_idx+1:]
+    
+    # Parse floats (handles '1.23, 4.56')
+    # Note: For production, use a safe eval or math expression parser here
+    try:
+        params = [float(x.strip()) for x in content.split(",") if x.strip()]
+    except ValueError:
+        # Fallback for simple symbolic math like "3.14" if pure float fails
+        # or raise error
+        raise ValueError(f"Could not parse parameters: {content}")
+        
     return params, remainder
 
-
-
 def parse_program_from_string(qasm_code: str) -> Tuple[List[instruction], int, int, int]:
-    """
-    Parse the custom process program DSL into a `process` object.
-    Return (inst_list, data_n, syn_n,measure_n).
+    # Normalize lines
+    # Normalize lines, skip empty and comment lines
+    raw_lines = [
+        ln.strip()
+        for ln in qasm_code.strip().splitlines()
+        if ln.strip() and not ln.lstrip().startswith("#")
+    ]
 
-    Expects header lines:
-        q = alloc_data(N)
-        s = alloc_helper(M)
-        set_shot(S)
-
-    Supports gates like:
-        H q0
-        CNOT q0, q2
-        RX(1.234) q3
-        U(theta, phi, lam) q1
-        ...
-        c0 = MEASURE q2
-        deallocate_data(q)
-        deallocate_helper(s)
-    """
-    # normalize and split lines
-    raw_lines = [ln.strip() for ln in qasm_code.strip().splitlines() if ln.strip()]
-
-    # ---- Pass 1: read header (alloc & shots) ----
-    data_n = 0
-    syn_n = 0
-    measure_n = 0
-
+    # Header Regex
     alloc_data_re = re.compile(r"^q\s*=\s*alloc_data\(\s*(\d+)\s*\)\s*$", re.IGNORECASE)
     alloc_syn_re  = re.compile(r"^s\s*=\s*alloc_helper\(\s*(\d+)\s*\)\s*$", re.IGNORECASE)
     set_shot_re   = re.compile(r"^set_shot\(\s*(\d+)\s*\)\s*$", re.IGNORECASE)
+    
+    # Special Instruction Regex
+    measure_re = re.compile(r"^c(\d+)\s*=\s*MEASURE\s+([qs]\d+)", re.IGNORECASE)
+    dealloc_s_re = re.compile(r"^deallocate_helper\(\s*(s\d+)\s*\)", re.IGNORECASE)
+    dealloc_q_re = re.compile(r"^deallocate_data\(\s*q\s*\)", re.IGNORECASE)
 
-    # We’ll keep the non-header lines to parse as instructions
-    instr_lines: List[str] = []
+    # Gate Registry: Name -> (Instype, expected_param_count, expected_qubit_count)
+    GATE_MAP = {
+        # No Params
+        "h": (Instype.H, 0, 1), "x": (Instype.X, 0, 1), "y": (Instype.Y, 0, 1), "z": (Instype.Z, 0, 1),
+        "t": (Instype.T, 0, 1), "tdg": (Instype.Tdg, 0, 1), "s": (Instype.S, 0, 1), "sdg": (Instype.Sdg, 0, 1),
+        "sx": (Instype.SX, 0, 1), "reset": (Instype.RESET, 0, 1),
+        "cnot": (Instype.CNOT, 0, 2), "cx": (Instype.CNOT, 0, 2), "ch": (Instype.CH, 0, 2), "swap": (Instype.SWAP, 0, 2),
+        "ccx": (Instype.Toffoli, 0, 3), "toffoli": (Instype.Toffoli, 0, 3), "cswap": (Instype.CSWAP, 0, 3),
+        
+        # Params
+        "rx": (Instype.RX, 1, 1), "ry": (Instype.RY, 1, 1), "rz": (Instype.RZ, 1, 1),
+        "u": (Instype.U, 3, 1), "u3": (Instype.U3, 3, 1),
+        "cp": (Instype.CP, 1, 2), "cu1": (Instype.CP, 1, 2)
+    }
+
+    data_n = 0
+    syn_n = 0
+    measure_n = 0
+    inst_list: List[instruction] = []
 
     for ln in raw_lines:
+        # --- 1. Header Handling ---
         if m := alloc_data_re.match(ln):
             data_n = int(m.group(1))
             continue
@@ -608,197 +654,325 @@ def parse_program_from_string(qasm_code: str) -> Tuple[List[instruction], int, i
             syn_n = int(m.group(1))
             continue
         if m := set_shot_re.match(ln):
-            shots = int(m.group(1))
             continue
-        # not a header line → it’s an instruction or dealloc
-        instr_lines.append(ln)
-
-
-    inst_list=[]
-
-
-    # ---- Parsers for instruction lines ----
-    # Simple 1-qubit no-parameter gates
-    oneq_no_param = {
-        "h": Instype.H,
-        "x": Instype.X,
-        "y": Instype.Y,
-        "z": Instype.Z,
-        "t": Instype.T,
-        "tdg": Instype.Tdg,
-        "s": Instype.S,
-        "sdg": Instype.Sdg,
-        "sx": Instype.SX,
-        "reset": Instype.RESET,
-    }
-
-    # Two-qubit gates without params
-    twoq_no_param = {
-        "cnot": Instype.CNOT,
-        "cx": Instype.CNOT,   # alias
-        "ch": Instype.CH,
-        "swap": Instype.SWAP,
-    }
-
-    # Three-qubit no-param
-    threeq_no_param = {
-        "cswap": Instype.CSWAP,
-        "toffoli": Instype.Toffoli,
-        "ccx": Instype.Toffoli,  # alias
-    }
-
-    # Helpers
-    def add_oneq_gate(kind: Instype, addr_tok: str, params: Optional[List[float]] = None):
-        if params:
-            inst_list.append(instruction(kind, [addr_tok], params=params))
-        else:
-            inst_list.append(instruction(kind, [addr_tok]))
-
-    def add_twoq_gate(kind: Instype, tok_a: str, tok_b: str, params: Optional[List[float]] = None):
-        if params:
-            inst_list.append(instruction(kind, [tok_a, tok_b], params=params))
-        else:
-            inst_list.append(instruction(kind, [tok_a, tok_b]))
-
-    def add_threeq_gate(kind: Instype, tok_a: str, tok_b: str, tok_c: str):
-        inst_list.append(instruction(kind, [tok_a, tok_b, tok_c]))
-
-    # Regexes for instruction shapes
-    measure_re = re.compile(r"^c\s*(\d+)\s*=\s*MEASURE\s+([qs]\d+)\s*$", re.IGNORECASE)
-    # dealloc lines (we'll synthesize syscalls ourselves, but allow them to appear)
-    dealloc_q_re = re.compile(r"^deallocate_data\s*\(\s*q\s*\)\s*$", re.IGNORECASE)
-    dealloc_s_re = re.compile(
-        r"^\s*deallocate_helper\s*\(\s*(s\d+)\s*\)\s*$",
-        re.IGNORECASE
-    )
-
-    for ln in instr_lines:
-        # Skip optional trailing dealloc directives; we'll add syscalls at the end.
+        
+        # --- 2. Special Instructions ---
+        if m := measure_re.match(ln):
+            c_idx = int(m.group(1))
+            q_target = m.group(2)
+            measure_n += 1
+            inst_list.append(instruction(Instype.MEASURE, [q_target], classical_address=c_idx))
+            continue
+            
+        if m := dealloc_s_re.match(ln):
+            inst_list.append(instruction(Instype.RELEASE, [m.group(1)]))
+            continue
+        
         if dealloc_q_re.match(ln):
             continue
 
-        # Measurement: "c0 = MEASURE q2"
-        m = measure_re.match(ln)
-        if m:
-            measure_n += 1
-            cidx = int(m.group(1))
-            qtok = m.group(2)
-            inst_list.append(instruction(Instype.MEASURE, [qtok], classical_address=cidx))
-            continue
-
-        # deallocate_helper(s0)
-        mdealloc_s = dealloc_s_re.match(ln)
-        if mdealloc_s:
-            sreg = mdealloc_s.group(1)
-            # synthesize RELEASE instructions for all helper qubits
-            inst_list.append(instruction(Instype.RELEASE, [sreg]))
-            continue
-
-
-        # Tokenize: first word is gate mnemonic (maybe with params), the rest are args
-        # We'll manually pull params when present (RX/RY/RZ/U/CU1).
-        # Examples:
-        #   "H q0"
-        #   "RX(1.23) q1"
-        #   "U(θ,φ,λ) q3"
-        #   "CNOT q0, q2"
-        #   "CU1(π/2) q0, q1"
+        # --- 3. Robust Gate Parsing ---
+        
+        # Split first token (gate) from the rest
         parts = ln.split(None, 1)
-        if not parts:
-            continue
-        gate_full = parts[0].strip()
-        rest = parts[1].strip() if len(parts) > 1 else ""
-        gate = gate_full.lower()
+        if not parts: continue
+        
+        raw_gate_token = parts[0]
+        
+        # Logic Fix: Handle "CP(1.23)" where param is attached to name
+        if "(" in raw_gate_token:
+            split_idx = raw_gate_token.find("(")
+            gate_name = raw_gate_token[:split_idx]  # Extract "CP"
+            # Reconstruct the "rest of line" to include the params we just sliced off
+            attached_params = raw_gate_token[split_idx:]
+            rest_of_line = attached_params + (" " + parts[1] if len(parts) > 1 else "")
+        else:
+            gate_name = raw_gate_token
+            rest_of_line = parts[1] if len(parts) > 1 else ""
 
-        # Parameterized single-qubit
-        if gate.startswith("rx"):
-            params, rest2 = _grab_params(rest if gate == "rx" else gate_full[2:] + rest)
-            target = rest2
-            add_oneq_gate(Instype.RX, target, params=params)
-            continue
+        gate_name = gate_name.lower()
 
-        if gate.startswith("ry"):
-            params, rest2 = _grab_params(rest if gate == "ry" else gate_full[2:] + rest)
-            target = rest2
-            add_oneq_gate(Instype.RY, target, params=params)
-            continue
+        if gate_name not in GATE_MAP:
+            raise ValueError(f"Unknown gate: {gate_name} in line '{ln}'")
 
-        if gate.startswith("rz"):
-            params, rest2 = _grab_params(rest if gate == "rz" else gate_full[2:] + rest)
-            target = rest2
-            add_oneq_gate(Instype.RZ, target, params=params)
-            continue
+        inst_type, expected_params, expected_qubits = GATE_MAP[gate_name]
+        
+        params = []
+        qubits = []
 
-        if gate.startswith("u3"):  # treat like U
-            params, rest2 = _grab_params(rest if gate == "u3" else gate_full[2:] + rest)
-            target = rest2
-            if len(params) != 3:
-                raise ValueError(f"U3 expects 3 parameters, got {params}")
-            add_oneq_gate(Instype.U3, target, params=params)
-            continue
+        # --- Strategy A: Parenthesis Parsing ---
+        # Checks if parentheses exist in the arguments part
+        if "(" in rest_of_line:
+            start = rest_of_line.find("(")
+            end = rest_of_line.rfind(")")
+            if start != -1 and end != -1:
+                p_str = rest_of_line[start+1:end]
+                q_str = rest_of_line[end+1:]
+                
+                if p_str.strip():
+                    params = [float(x.strip()) for x in p_str.split(",")]
+                qubits = [q.strip() for q in q_str.split(",") if q.strip()]
 
-        if gate.startswith("u(") or gate == "u":
-            # handle forms like "U( ... ) q0" or weird tokenization
-            params, rest2 = _grab_params(ln[1:] if gate_full.lower().startswith("u(") else rest)
-            target = rest2
-            if len(params) != 3:
-                raise ValueError(f"U expects 3 parameters, got {params}")
-            add_oneq_gate(Instype.U, target, params=params)
-            continue
+        # --- Strategy B: Linear Parsing ---
+        # Handles "CP 1.25, q0" or "CP 1.25 q0"
+        else:
+            normalized_args = rest_of_line.replace(",", " ")
+            tokens = [t.strip() for t in normalized_args.split()]
+            
+            for token in tokens:
+                try:
+                    val = float(token)
+                    params.append(val)
+                except ValueError:
+                    qubits.append(token)
 
-        if gate.startswith("cu1") or gate.startswith("cp"):
-            # Decide how to build the string we feed into _grab_params
-            # Case A: token is just "cu1" or "cp" and params are in `rest`,
-            #         e.g. "CP (theta) q0, q1"
-            if gate in ("cu1", "cp"):
-                param_src = rest
-            else:
-                # Case B: token already includes the "(", e.g. "CP(theta)"
-                #         so slice off the name and keep from "(" onward.
-                # length of name: 3 for CU1, 2 for CP
-                name_len = 3 if gate.startswith("cu1") else 2
-                param_src = gate_full[name_len:] + rest
-                # e.g. gate_full = "CP(0.5)"  -> gate_full[2:] = "(0.5)"
-                #      param_src = "(0.5)" + "q0, q1" -> "(0.5)q0, q1"
+        # --- Validation ---
+        if len(params) != expected_params:
+            raise ValueError(f"Gate {gate_name.upper()} expects {expected_params} params, got {len(params)} in '{ln}'")
 
-            params, rest2 = _grab_params(param_src)
+        if len(qubits) != expected_qubits:
+             raise ValueError(f"Gate {gate_name.upper()} expects {expected_qubits} qubits, got {len(qubits)} in '{ln}'")
 
-            if len(params) != 1:
-                raise ValueError(f"CU1/CP expects 1 parameter, got {params}")
+        inst_list.append(instruction(inst_type, qubits, params=(params if params else None)))
 
-            # rest2 should now look like "q0, q1"
-            toks = [t.strip() for t in rest2.split(",")]
-            if len(toks) != 2:
-                raise ValueError(f"CU1/CP expects two qubit args, got '{rest2}'")
-            add_twoq_gate(Instype.CP, toks[0], toks[1], params=params)
-            continue
-
-        # No-parameter one-qubit?
-        if gate in oneq_no_param:
-            # rest should be like "q0"
-            add_oneq_gate(oneq_no_param[gate], rest)
-            continue
-
-        # Two-qubit no-param?
-        if gate in twoq_no_param:
-            toks = [t.strip() for t in rest.split(",")]
-            if len(toks) != 2:
-                raise ValueError(f"{gate.upper()} expects two qubit args, got '{rest}'")
-            add_twoq_gate(twoq_no_param[gate], toks[0], toks[1])
-            continue
-
-        # Three-qubit no-param?
-        if gate in threeq_no_param:
-            toks = [t.strip() for t in rest.split(",")]
-            if len(toks) != 3:
-                raise ValueError(f"{gate.upper()} expects three qubit args, got '{rest}'")
-            add_threeq_gate(threeq_no_param[gate], toks[0], toks[1], toks[2])
-            continue
-
-        raise ValueError(f"Unsupported or malformed instruction line: '{ln}'")
+    return inst_list, data_n, syn_n, measure_n
 
 
-    return inst_list, data_n, syn_n, measure_n    
+# def parse_program_from_string(qasm_code: str) -> Tuple[List[instruction], int, int, int]:
+#     """
+#     Parse the custom process program DSL into a `process` object.
+#     Return (inst_list, data_n, syn_n,measure_n).
+
+#     Expects header lines:
+#         q = alloc_data(N)
+#         s = alloc_helper(M)
+#         set_shot(S)
+
+#     Supports gates like:
+#         H q0
+#         CNOT q0, q2
+#         RX(1.234) q3
+#         U(theta, phi, lam) q1
+#         ...
+#         c0 = MEASURE q2
+#         deallocate_data(q)
+#         deallocate_helper(s)
+#     """
+#     # normalize and split lines
+#     raw_lines = [ln.strip() for ln in qasm_code.strip().splitlines() if ln.strip()]
+
+#     # ---- Pass 1: read header (alloc & shots) ----
+#     data_n = 0
+#     syn_n = 0
+#     measure_n = 0
+
+#     alloc_data_re = re.compile(r"^q\s*=\s*alloc_data\(\s*(\d+)\s*\)\s*$", re.IGNORECASE)
+#     alloc_syn_re  = re.compile(r"^s\s*=\s*alloc_helper\(\s*(\d+)\s*\)\s*$", re.IGNORECASE)
+#     set_shot_re   = re.compile(r"^set_shot\(\s*(\d+)\s*\)\s*$", re.IGNORECASE)
+
+#     # We’ll keep the non-header lines to parse as instructions
+#     instr_lines: List[str] = []
+
+#     for ln in raw_lines:
+#         if m := alloc_data_re.match(ln):
+#             data_n = int(m.group(1))
+#             continue
+#         if m := alloc_syn_re.match(ln):
+#             syn_n = int(m.group(1))
+#             continue
+#         if m := set_shot_re.match(ln):
+#             shots = int(m.group(1))
+#             continue
+#         # not a header line → it’s an instruction or dealloc
+#         instr_lines.append(ln)
+
+
+#     inst_list=[]
+
+
+#     # ---- Parsers for instruction lines ----
+#     # Simple 1-qubit no-parameter gates
+#     oneq_no_param = {
+#         "h": Instype.H,
+#         "x": Instype.X,
+#         "y": Instype.Y,
+#         "z": Instype.Z,
+#         "t": Instype.T,
+#         "tdg": Instype.Tdg,
+#         "s": Instype.S,
+#         "sdg": Instype.Sdg,
+#         "sx": Instype.SX,
+#         "reset": Instype.RESET,
+#     }
+
+#     # Two-qubit gates without params
+#     twoq_no_param = {
+#         "cnot": Instype.CNOT,
+#         "cx": Instype.CNOT,   # alias
+#         "ch": Instype.CH,
+#         "swap": Instype.SWAP,
+#     }
+
+#     # Three-qubit no-param
+#     threeq_no_param = {
+#         "cswap": Instype.CSWAP,
+#         "toffoli": Instype.Toffoli,
+#         "ccx": Instype.Toffoli,  # alias
+#     }
+
+#     # Helpers
+#     def add_oneq_gate(kind: Instype, addr_tok: str, params: Optional[List[float]] = None):
+#         if params:
+#             inst_list.append(instruction(kind, [addr_tok], params=params))
+#         else:
+#             inst_list.append(instruction(kind, [addr_tok]))
+
+#     def add_twoq_gate(kind: Instype, tok_a: str, tok_b: str, params: Optional[List[float]] = None):
+#         if params:
+#             inst_list.append(instruction(kind, [tok_a, tok_b], params=params))
+#         else:
+#             inst_list.append(instruction(kind, [tok_a, tok_b]))
+
+#     def add_threeq_gate(kind: Instype, tok_a: str, tok_b: str, tok_c: str):
+#         inst_list.append(instruction(kind, [tok_a, tok_b, tok_c]))
+
+#     # Regexes for instruction shapes
+#     measure_re = re.compile(r"^c\s*(\d+)\s*=\s*MEASURE\s+([qs]\d+)\s*$", re.IGNORECASE)
+#     # dealloc lines (we'll synthesize syscalls ourselves, but allow them to appear)
+#     dealloc_q_re = re.compile(r"^deallocate_data\s*\(\s*q\s*\)\s*$", re.IGNORECASE)
+#     dealloc_s_re = re.compile(
+#         r"^\s*deallocate_helper\s*\(\s*(s\d+)\s*\)\s*$",
+#         re.IGNORECASE
+#     )
+
+#     for ln in instr_lines:
+#         # Skip optional trailing dealloc directives; we'll add syscalls at the end.
+#         if dealloc_q_re.match(ln):
+#             continue
+
+#         # Measurement: "c0 = MEASURE q2"
+#         m = measure_re.match(ln)
+#         if m:
+#             measure_n += 1
+#             cidx = int(m.group(1))
+#             qtok = m.group(2)
+#             inst_list.append(instruction(Instype.MEASURE, [qtok], classical_address=cidx))
+#             continue
+
+#         # deallocate_helper(s0)
+#         mdealloc_s = dealloc_s_re.match(ln)
+#         if mdealloc_s:
+#             sreg = mdealloc_s.group(1)
+#             # synthesize RELEASE instructions for all helper qubits
+#             inst_list.append(instruction(Instype.RELEASE, [sreg]))
+#             continue
+
+
+#         # Tokenize: first word is gate mnemonic (maybe with params), the rest are args
+#         # We'll manually pull params when present (RX/RY/RZ/U/CU1).
+#         # Examples:
+#         #   "H q0"
+#         #   "RX(1.23) q1"
+#         #   "U(θ,φ,λ) q3"
+#         #   "CNOT q0, q2"
+#         #   "CU1(π/2) q0, q1"
+#         parts = ln.split(None, 1)
+#         if not parts:
+#             continue
+#         gate_full = parts[0].strip()
+#         rest = parts[1].strip() if len(parts) > 1 else ""
+#         gate = gate_full.lower()
+
+#         # Parameterized single-qubit
+#         if gate.startswith("rx"):
+#             params, rest2 = _grab_params(rest if gate == "rx" else gate_full[2:] + rest)
+#             target = rest2
+#             add_oneq_gate(Instype.RX, target, params=params)
+#             continue
+
+#         if gate.startswith("ry"):
+#             params, rest2 = _grab_params(rest if gate == "ry" else gate_full[2:] + rest)
+#             target = rest2
+#             add_oneq_gate(Instype.RY, target, params=params)
+#             continue
+
+#         if gate.startswith("rz"):
+#             params, rest2 = _grab_params(rest if gate == "rz" else gate_full[2:] + rest)
+#             target = rest2
+#             add_oneq_gate(Instype.RZ, target, params=params)
+#             continue
+
+#         if gate.startswith("u3"):  # treat like U
+#             params, rest2 = _grab_params(rest if gate == "u3" else gate_full[2:] + rest)
+#             target = rest2
+#             if len(params) != 3:
+#                 raise ValueError(f"U3 expects 3 parameters, got {params}")
+#             add_oneq_gate(Instype.U3, target, params=params)
+#             continue
+
+#         if gate.startswith("u(") or gate == "u":
+#             # handle forms like "U( ... ) q0" or weird tokenization
+#             params, rest2 = _grab_params(ln[1:] if gate_full.lower().startswith("u(") else rest)
+#             target = rest2
+#             if len(params) != 3:
+#                 raise ValueError(f"U expects 3 parameters, got {params}")
+#             add_oneq_gate(Instype.U, target, params=params)
+#             continue
+
+#         if gate.startswith("cu1") or gate.startswith("cp"):
+#             # Decide how to build the string we feed into _grab_params
+#             # Case A: token is just "cu1" or "cp" and params are in `rest`,
+#             #         e.g. "CP (theta) q0, q1"
+#             if gate in ("cu1", "cp"):
+#                 param_src = rest
+#             else:
+#                 # Case B: token already includes the "(", e.g. "CP(theta)"
+#                 #         so slice off the name and keep from "(" onward.
+#                 # length of name: 3 for CU1, 2 for CP
+#                 name_len = 3 if gate.startswith("cu1") else 2
+#                 param_src = gate_full[name_len:] + rest
+#                 # e.g. gate_full = "CP(0.5)"  -> gate_full[2:] = "(0.5)"
+#                 #      param_src = "(0.5)" + "q0, q1" -> "(0.5)q0, q1"
+
+#             params, rest2 = _grab_params(param_src)
+
+#             if len(params) != 1:
+#                 print(param_src)
+#                 raise ValueError(f"CU1/CP expects 1 parameter, got {params}")
+
+#             # rest2 should now look like "q0, q1"
+#             toks = [t.strip() for t in rest2.split(",")]
+#             if len(toks) != 2:
+#                 raise ValueError(f"CU1/CP expects two qubit args, got '{rest2}'")
+#             add_twoq_gate(Instype.CP, toks[0], toks[1], params=params)
+#             continue
+
+#         # No-parameter one-qubit?
+#         if gate in oneq_no_param:
+#             # rest should be like "q0"
+#             add_oneq_gate(oneq_no_param[gate], rest)
+#             continue
+
+#         # Two-qubit no-param?
+#         if gate in twoq_no_param:
+#             toks = [t.strip() for t in rest.split(",")]
+#             if len(toks) != 2:
+#                 raise ValueError(f"{gate.upper()} expects two qubit args, got '{rest}'")
+#             add_twoq_gate(twoq_no_param[gate], toks[0], toks[1])
+#             continue
+
+#         # Three-qubit no-param?
+#         if gate in threeq_no_param:
+#             toks = [t.strip() for t in rest.split(",")]
+#             if len(toks) != 3:
+#                 raise ValueError(f"{gate.upper()} expects three qubit args, got '{rest}'")
+#             add_threeq_gate(threeq_no_param[gate], toks[0], toks[1], toks[2])
+#             continue
+
+#         raise ValueError(f"Unsupported or malformed instruction line: '{ln}'")
+
+
+#     return inst_list, data_n, syn_n, measure_n    
 
 
 
@@ -1136,7 +1310,11 @@ if __name__ == "__main__":
     #     generate_mcx_benchmark_medium(i)
 
 
-    simulate_benchmark_program("C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\qecsmall", is_clifford=True)
+    simulate_benchmark_program("C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\arithsmall")
+
+    simulate_benchmark_program("C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\arithmedium")
+
+
 
 
     #generate_qec_benchmark_medium()
@@ -1191,13 +1369,17 @@ if __name__ == "__main__":
 
 
 
-#    file_path = "C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\syndrome_extraction_surface_n4"
-
-
-
+#    file_path = "C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\randomsmall\\data_4_syn_4_gc_10_0"
 
 #    inst_list, data_n, syn_n, measure_n = parse_program_from_file(file_path)
 
+
+
+#    print(f"data_n={data_n}, syn_n={syn_n}, measure_n={measure_n}")
+   
+#    print("Original Program:")
+#    for inst in inst_list:
+#     print(inst)
 
 
 #    output_program = generate_program_without_helper_qubit(data_n, syn_n, inst_list)

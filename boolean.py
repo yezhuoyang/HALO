@@ -203,7 +203,7 @@ class BenchmarkCompiler:
 
 # --- 4. Main Generator ---
 
-def generate_decomposed_benchmark(num_vars: int, depth: int) -> Tuple[List[instruction], str]:
+def generate_decomposed_benchmark(num_vars: int, depth: int) -> Tuple[int,List[instruction], str]:
     # 1. Generate Expression
     root = generate_random_ast(depth, num_vars)
     
@@ -221,13 +221,22 @@ def generate_decomposed_benchmark(num_vars: int, depth: int) -> Tuple[List[instr
     compiler.program_str += "deallocate_data(q)\n"
 
     # 4. Construct Header
-    header = f"# Naive Boolean Benchmark (Decomposed Toffoli)\n"
-    header += f"# Expression: {root}\n"
+    header = f"# Expression: {root}\n"
     header += f"q = alloc_data({num_vars})\n"
-    header += f"s = alloc_helper({compiler.max_helper_usage})\n"
-    header += "set_shot(100)\n\n"
-    
-    return compiler.inst_list, header + compiler.program_str
+    header += f"s = alloc_helper({compiler.next_helper_id})\n"    
+
+
+
+    #Simulate the circuit when inputs are all 0:
+    input_values = {i: 0 for i in range(num_vars)}
+    output = evaluate_ast(root, input_values)
+    #print(f"Simulated output (all zeros): {output}")
+
+
+
+
+
+    return output, compiler.inst_list, header + compiler.program_str
 
 
 
@@ -399,29 +408,118 @@ def verify_circuit_correctness(inst_list: List[instruction], root_node: 'Boolean
 
 
 
+import pickle
+
+def generate_arithm_small_benchmark():
+    """
+    Generate a small arithmetic benchmark for testing.
+    """
+    folder_path = "benchmark/arithsmall"
+    result_path = "benchmark/result2000shots/arithsmall"
+    # (num_vars, depth, how many instances to generate)
+    configs = [
+        # (3, 3, 2),
+        (3, 4, 2),
+        #(4, 2, 2),
+        # (4, 3, 2),
+        # (4, 4, 2),
+    ]
+
+    for num_vars, depth, num_instances in configs:
+        for idx in range(num_instances):
+            output, inst_list, program = generate_decomposed_benchmark(
+                num_vars=num_vars,
+                depth=depth
+            )
+
+            filename = f"varnum_{num_vars}_d_{depth}_{idx}"
+            with open(f"{folder_path}/{filename}", "w") as f:
+                f.write(program)
+
+            # Use pickle to store the result to result_path
+            counts = {str(output): 2000}
+            with open(f"{result_path}/{filename}_counts.pkl", "wb") as f:
+                pickle.dump(counts, f)
+    return
+
+def generate_arithm_medium_benchmark():
+    """
+    Generate medium arithmetic benchmarks for testing.
+    Also generate the result when inputs are all zeros.
+    """
+    folder_path = "benchmark/arithmedium"
+    result_path = "benchmark/result2000shots/arithmedium"
+    # (num_vars, depth, how many instances to generate)
+    configs = [
+        # (7, 5, 2),
+        # (8, 4, 1),
+        (8, 5, 1),
+        # (9, 5, 1),
+        # (9, 4, 1),
+        # (10, 3, 2),
+        # (10, 4, 2),
+        # (11, 4, 2),
+        # (12, 4, 2),
+    ]
+
+    for num_vars, depth, num_instances in configs:
+        for idx in range(num_instances):
+            output, inst_list, program = generate_decomposed_benchmark(
+                num_vars=num_vars,
+                depth=depth,
+            )
+
+            base_name = f"varnum_{num_vars}_d_{depth}_{idx}"
+
+            # Save the generated benchmark program to a file
+            with open(f"{folder_path}/{base_name}", "w") as f:
+                f.write(program)
+
+            # Use pickle to store the result to result_path
+            counts = {str(output): 2000}
+            with open(f"{result_path}/{base_name}_counts.pkl", "wb") as f:
+                pickle.dump(counts, f)
+
+    return
+
+
+
+
+
 
 
 if __name__ == "__main__":
     # Test Logic
     # 1. Generate a small random benchmark
-    num_vars = 8
-    depth = 4
-    root = generate_random_ast(depth, num_vars)
-    print(f"Generated AST: {root}")
+    # A,program=generate_decomposed_benchmark(num_vars=4, depth=3)
+    # #print("Generated Benchmark Program:\n")
+    # print(program)
+    generate_arithm_small_benchmark()
+    #generate_arithm_medium_benchmark()
+
+
+
+    # num_vars = 8
+    # depth = 4
+    # root = generate_random_ast(depth, num_vars)
+    # print(f"Generated AST: {root}")
     
-    # 2. Compile it (using the Decomposed Toffoli compiler from previous step)
-    compiler = BenchmarkCompiler()
-    out_addr = compiler.recurse(root)
+    # # 2. Compile it (using the Decomposed Toffoli compiler from previous step)
+    # compiler = BenchmarkCompiler()
+    # out_addr = compiler.recurse(root)
     
-    # Add final measurement
-    compiler.inst_list.append(instruction(Instype.MEASURE, [out_addr], classical_address=0))
-    compiler.dealloc(out_addr) # Release final result qubit
+    # # Add final measurement
+    # compiler.inst_list.append(instruction(Instype.MEASURE, [out_addr], classical_address=0))
+    # compiler.dealloc(out_addr) # Release final result qubit
     
-    # 3. Verify it
-    # Note: We pass the raw instruction list. The verification function handles X-gate injection.
-    is_correct = verify_circuit_correctness(compiler.inst_list, root, num_vars)
+
+
+    # print(compiler.program_str)
+    # # 3. Verify it
+    # # Note: We pass the raw instruction list. The verification function handles X-gate injection.
+    # is_correct = verify_circuit_correctness(compiler.inst_list, root, num_vars)
     
-    if is_correct:
-        print("SUCCESS: The quantum circuit implements the classical logic perfectly.")
-    else:
-        print("FAILURE: Logic mismatch detected.")
+    # if is_correct:
+    #     print("SUCCESS: The quantum circuit implements the classical logic perfectly.")
+    # else:
+    #     print("FAILURE: Logic mismatch detected.")

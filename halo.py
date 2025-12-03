@@ -18,7 +18,8 @@ from qiskit_ibm_runtime import EstimatorV2 as Estimator, SamplerV2 as Sampler
 from qiskit_ibm_runtime import QiskitRuntimeService
 
 
-
+import matplotlib
+matplotlib.use('Agg') 
 #Mute the qiskit_ibm_runtime logging info
 import logging
 logging.getLogger("qiskit_ibm_runtime").setLevel(logging.ERROR)
@@ -34,10 +35,7 @@ class benchmarktype(Enum):
     STABILIZER_MEASUREMENT_MEDIUM =5
     CLASSICAL_LOGIC_SMALL =6
     CLASSICAL_LOGIC_MEDIUM = 7
-    LCU_SMALL =8
-    LCU_MEDIUM = 9
-    MIX_SMALL = 10
-    MIX_MEDIUM = 11
+    MIX = 8
 
 
 
@@ -50,8 +48,6 @@ benchmark_file_path={
     benchmarktype.STABILIZER_MEASUREMENT_MEDIUM:"benchmark//qecmedium//",
     benchmarktype.CLASSICAL_LOGIC_SMALL:"benchmark//arithsmall//",
     benchmarktype.CLASSICAL_LOGIC_MEDIUM:"benchmark//arithmedium//",
-    benchmarktype.LCU_SMALL:"benchmark//hamsimsmall//",
-    benchmarktype.LCU_MEDIUM:"benchmark//hamsimmedium//",
 }
 
 
@@ -64,48 +60,112 @@ benchmark_result_path={
     benchmarktype.STABILIZER_MEASUREMENT_MEDIUM:"benchmark//result2000shots//qecmedium//",
     benchmarktype.CLASSICAL_LOGIC_SMALL:"benchmark//result2000shots//arithsmall//",
     benchmarktype.CLASSICAL_LOGIC_MEDIUM:"benchmark//result2000shots//arithmedium//",
-    benchmarktype.LCU_SMALL:"benchmark//result2000shots//hamsimsmall//",
-    benchmarktype.LCU_MEDIUM:"benchmark//result2000shots//hamsimmedium//",
 }
 
 
 
 
-random_small_benchmark={
-    0: "data_8_syn_8_gc_40_1",
-    1: "data_10_syn_10_gc_40_1",
-    2: "data_10_syn_10_gc_40_2",
+random_small_benchmark = {
+    0: "data_4_syn_4_gc_10_0",
+    1: "data_4_syn_4_gc_15_0",
+    2: "data_5_syn_4_gc_15_0",
+    3: "data_5_syn_5_gc_15_0",
+    4: "data_5_syn_5_gc_20_0",
+    5: "data_6_syn_6_gc_15_0",
+    6: "data_6_syn_6_gc_18_0",
+    7: "data_7_syn_7_gc_10_0",
+    8: "data_7_syn_7_gc_25_0",
+    9: "data_8_syn_8_gc_22_0",
+    10: "data_9_syn_8_gc_20_0",
 }
 
 
-random_medium_benchmark={
-    0: "data_20_syn_20_gc_100_1",
-    1: "data_20_syn_20_gc_100_2",
-    2: "data_25_syn_25_gc_100_1",
+random_medium_benchmark = {
+    0: "data_10_syn_20_gc_45_0",
+    1: "data_10_syn_20_gc_55_0",
+    2: "data_11_syn_19_gc_48_0",
+    3: "data_12_syn_18_gc_58_0",
+    4: "data_13_syn_17_gc_52_0",
+    5: "data_14_syn_15_gc_45_0",
+    6: "data_15_syn_12_gc_40_0",
+    7: "data_15_syn_15_gc_30_0",
+    8: "data_15_syn_15_gc_40_0",
+    9: "data_17_syn_13_gc_50_0",
+    10: "data_20_syn_10_gc_50_0",
 }
 
 
 
 
-qec_small_benchmark={
+qec_small_benchmark = {
     0: "cat_state_prep_n4",
     1: "cat_state_verification_n4",
     2: "repetition_code_distance3_n3",
-    3: "shor_parity_measurement_n4",
-    4: "shor_stabilizer_XZZX_n3",
-    5: "shor_stabilizer_ZZZZ_n4",
-    6: "syndrome_extraction_surface_n4"
+
+    # --- Repetition code with specific error patterns ---
+    3: "repetition_d3_round_2_error_IIY",
+    4: "repetition_d3_round_2_error_XII",
+    5: "repetition_d3_round_2_error_ZII",
+    6: "repetition_d3_round_3_error_IYI",
+    7: "repetition_d3_round_3_error_IZI",
+
+    # --- Shor code circuits ---
+    8: "shor_parity_measurement_n4",
+    9: "shor_stabilizer_XZZX_n3",
+    10: "shor_stabilizer_ZZZZ_n4",
+
+    # --- Surface-code syndrome extraction ---
+    11: "syndrome_extraction_surface_n4",
 }
 
+qec_medium_benchmark = {
+    # --- Clean circuits (your original entries) ---
 
-qec_medium_benchmark={
-    0: "cat_state_prep_n7",
-    1: "cat_state_verification_n7",
-    2: "repetition_code_distance5_n5",
-    3: "shor_parity_measurement_n7",
-    4: "shor_stabilizer_XZZX_n5",
-    5: "shor_stabilizer_ZZZZZZ_n6",
-    6: "syndrome_extraction_surface_n9"
+    # --- Five-qubit code (distance-3), round 2 ---
+    0:  "fivequbit_round_2_error_IIZII",
+    1:  "fivequbit_round_2_error_IXIII",
+    2:  "fivequbit_round_2_error_YIIII",
+    3:  "fivequbit_round_3_error_IIIXI",
+    4:  "fivequbit_round_3_error_IXIII",
+
+
+    # --- Repetition code distance-5, round 2 ---
+    5: "repetition_d5_round_2_error_IIIYI",
+    6: "repetition_d5_round_2_error_IIIZI",
+    7: "repetition_d5_round_2_error_XIIII",
+    8: "repetition_d5_round_3_error_IIIIZ",
+    9: "repetition_d5_round_3_error_IYIII",
+    10: "repetition_d5_round_3_error_ZIIII",
+
+
+    # --- Shor code, round 2 ---
+    11: "shor_round_2_error_IIIIIIIIZ",
+    12: "shor_round_2_error_IIIIIIZII",
+    13: "shor_round_2_error_XIIIIIIII",
+
+    14: "shor_round_3_error_IIYIIIIII",
+    15: "shor_round_3_error_IYIIIIIII",
+    16: "shor_round_3_error_XIIIIIIII",
+
+    # --- Steane code, round 2 ---
+    17: "steane_round_2_error_IIIIIXI",
+    18: "steane_round_2_error_IIIYIII",
+    19: "steane_round_2_error_ZIIIIII",
+
+    # --- Steane code, round 3 ---
+    20: "steane_round_3_error_IXIIIII",
+    21: "steane_round_3_error_XIIIIII",
+    22: "steane_round_3_error_ZIIIIII",
+
+    # --- Surface code distance-3, round 2 ---
+    23: "surface_d3_round_2_error_IIIIIIIIZ",
+    24: "surface_d3_round_2_error_IIIIIIIXI",
+    25: "surface_d3_round_2_error_IIIIIXIII",
+
+    # --- Surface code distance-3, round 3 ---
+    26: "surface_d3_round_3_error_IIIIIXIII",
+    27: "surface_d3_round_3_error_IIIXIIIII",
+    28: "surface_d3_round_3_error_XIIIIIIII",
 }
 
 
@@ -142,50 +202,51 @@ multix_medium_benchmark={
 
 
 classical_logic_small_benchmark={
-    0:"adder_5bit",
-    1:"multiplier_3bit",
-    2:"comparator_4bit",
-    3:"subtracter_5bit",
-    4:"divider_4bit",
-    5:"modulo_4bit",
+    0: "varnum_3_d_3_0",
+    1: "varnum_3_d_3_1",
+    2: "varnum_3_d_4_0",
+    3: "varnum_3_d_4_1",
+    4: "varnum_4_d_2_0",
+    5: "varnum_4_d_2_1",
+    6: "varnum_4_d_3_0",
+    7: "varnum_4_d_3_1",
+    8: "varnum_4_d_4_0",
+    9: "varnum_4_d_4_1"
 }
 
 
-classical_logic_medium_benchmark={
-    0:"adder_10bit",
-    1:"multiplier_5bit",
-    2:"comparator_8bit",
-    3:"subtracter_10bit",
-    4:"divider_8bit",
-    5:"modulo_8bit",
+
+
+classical_logic_medium_benchmark = {
+    0:  "varnum_7_d_4_0",
+    1:  "varnum_7_d_4_1",
+    2:  "varnum_7_d_5_1",
+    3:  "varnum_8_d_4_0",
+    4:  "varnum_8_d_5_1",
+    5:  "varnum_9_d_3_0",
+    6:  "varnum_9_d_3_1",
+    7:  "varnum_9_d_4_0",
+    8:  "varnum_9_d_5_0",
+    9:  "varnum_10_d_3_0",
+    10: "varnum_10_d_4_0",
+    11: "varnum_10_d_4_1",
+    12: "varnum_11_d_4_0",
+    13: "varnum_11_d_4_1",
+    14: "varnum_12_d_4_0",
+    15: "varnum_12_d_4_1",
 }
 
-
-hamilsim_small_benchmark={
-    0:"hamilsim_4q_2terms",
-    1:"hamilsim_6q_3terms",
-    2:"hamilsim_8q_4terms",
-    3:"hamilsim_10q_5terms",
-}
-
-
-hamilsim_medium_benchmark={
-    0:"hamilsim_6q_4terms",
-    1:"hamilsim_8q_6terms",
-    2:"hamilsim_10q_8terms",
-    3:"hamilsim_12q_10terms"
-}
 
 
 benchmark_type_to_benchmark={
+    benchmarktype.RANDOM_SMALL: random_small_benchmark,
+    benchmarktype.RANDOM_MEDIUM: random_medium_benchmark,
     benchmarktype.MULTI_CONTROLLED_X_SMALL: multix_small_benchmark,
     benchmarktype.MULTI_CONTROLLED_X_MEDIUM: multix_medium_benchmark,
     benchmarktype.STABILIZER_MEASUREMENT_SMALL: qec_small_benchmark,
     benchmarktype.STABILIZER_MEASUREMENT_MEDIUM: qec_medium_benchmark,
     benchmarktype.CLASSICAL_LOGIC_SMALL: classical_logic_small_benchmark,
-    benchmarktype.CLASSICAL_LOGIC_MEDIUM: classical_logic_medium_benchmark,
-    benchmarktype.LCU_SMALL: hamilsim_small_benchmark,
-    benchmarktype.LCU_MEDIUM: hamilsim_medium_benchmark,
+    benchmarktype.CLASSICAL_LOGIC_MEDIUM: classical_logic_medium_benchmark
 }
 
 
@@ -258,7 +319,7 @@ delta=0.3
 eps = 0.3
 
 #Set the scheduling option here
-Scheduling_Option=SchedulingOptions.HALO
+Scheduling_Option=SchedulingOptions.NO_SHARING
 benchmark_Option=benchmarktype.MULTI_CONTROLLED_X_MEDIUM
 
 
@@ -267,16 +328,16 @@ benchmark_Option=benchmarktype.MULTI_CONTROLLED_X_MEDIUM
 fake_torino_backend=construct_fake_ibm_torino()
 
 
-N_qubits=133
-hardware_distance_pair=all_pairs_distances(N_qubits, torino_coupling_map())
+# N_qubits=133
+# hardware_distance_pair=all_pairs_distances(N_qubits, torino_coupling_map())
 
-# N_qubits=30
-# hardware_distance_pair=all_pairs_distances(N_qubits, simple_30_qubit_coupling_map())
+N_qubits=133
+hardware_distance_pair=all_pairs_distances(N_qubits, simple_30_qubit_coupling_map())
 DIST_MATRIX = np.asarray(hardware_distance_pair, dtype=float)
 fake_backend=construct_fake_ibm_torino()
 
 
-data_hardware_ratio=0.7
+data_hardware_ratio=0.8
 #The maximum distance between a data qubit and a helper qubit
 max_data_helper_distance=10
 
@@ -1093,13 +1154,13 @@ def greedy_initial_mapping(process_list: List[process],
 
 
 
-
 def iteratively_find_the_best_mapping_for_data(
     process_list: List[process],
     n_qubits: int,
-    n_restarts: int = 10,
-    steps_per_restart: int = 500,
+    n_restarts: int = 200,
+    steps_per_restart: int = 800,
     move_prob: float = 0.3,
+    interrupt_event: Optional[threading.Event] = None,
 ) -> Dict[int, Tuple[int, int]]:
     """
     Heuristic search for a good mapping using simulated annealing
@@ -1109,6 +1170,9 @@ def iteratively_find_the_best_mapping_for_data(
     Local moves:
       - swap two mapped physical qubits
       - move a mapped qubit to a helper qubit (changing helper zone)
+
+    If `interrupt_event` is provided and gets set(), the search will
+    stop early and return the best mapping found so far.
     """
     global_best_mapping: Optional[Dict[int, Tuple[int, int]]] = None
     global_best_cost = float("inf")
@@ -1117,6 +1181,12 @@ def iteratively_find_the_best_mapping_for_data(
     cooling_rate = 0.995  # try 0.99 if you want even more aggressive cooling
 
     for r in range(n_restarts):
+        # --- Early exit: if interrupted, stop all remaining restarts ---
+        if interrupt_event is not None and interrupt_event.is_set():
+            print(f"[MAPPING] Interrupt received before restart {r}; "
+                  f"returning best mapping found so far: cost={global_best_cost}")
+            break
+
         # 1) Greedy initial mapping (already reasonably compact)
         init_mapping = greedy_initial_mapping(
             process_list, n_qubits, hardware_distance_pair
@@ -1126,10 +1196,29 @@ def iteratively_find_the_best_mapping_for_data(
         state = MappingCostState(process_list, init_mapping, n_qubits, DIST_MATRIX)
         current_cost = state.get_cost()
 
+        # If we haven't recorded any global best yet, use this as a baseline
+        if global_best_mapping is None or current_cost < global_best_cost:
+            global_best_cost = current_cost
+            global_best_mapping = dict(state.mapping)
+
         # Initial temperature scaled to cost magnitude
         T0 = max(1.0, abs(current_cost) * 0.1)
 
         for step in range(steps_per_restart):
+            # --- Early exit inside restart: interrupt while annealing ---
+            if interrupt_event is not None and interrupt_event.is_set():
+                print(f"[MAPPING] Interrupt received during restart {r}, step {step}; "
+                      f"returning best mapping found so far: cost={global_best_cost}")
+                # We don't need to do anything else: global_best_* already
+                # tracks the best we have seen across all restarts/steps.
+                if global_best_mapping is None:
+                    # Fallback: use current state's mapping if for some reason
+                    # we never updated the global_best_mapping.
+                    global_best_mapping = dict(state.mapping)
+                    global_best_cost = current_cost
+                # Break out of both loops via flag
+                break
+
             # Geometric cooling schedule
             T = T0 * (cooling_rate ** step) + 1e-9  # avoid T == 0
 
@@ -1172,6 +1261,15 @@ def iteratively_find_the_best_mapping_for_data(
                     state.reassign(phys_dst, phys_src)
                 # current_cost stays old_cost
 
+        else:
+            # inner loop ended normally (no interrupt break)
+            print(f"[Restart {r}] best so far: {global_best_cost}")
+            continue  # go to next restart
+
+        # If we hit the interrupt break, we land here and should break outer loop
+        if interrupt_event is not None and interrupt_event.is_set():
+            break
+
         print(f"[Restart {r}] best so far: {global_best_cost}")
 
     print("Final best cost:", global_best_cost)
@@ -1179,18 +1277,6 @@ def iteratively_find_the_best_mapping_for_data(
         # Should not happen unless there were no valid mappings
         raise RuntimeError("No valid mapping found during annealing.")
     return global_best_mapping
-
-
-def iteratively_find_the_best_mapping_for_all(process_list: List[process],
-                                      n_qubits: int,
-                                      n_restarts: int = 1,
-                                      steps_per_restart: int = 2000
-                                      ) -> Dict[int, tuple[int, int]]:
-    """
-    Find the best mapping for all qubits, including the helper qubits.
-    Thus is used for the bechmark without helper qubit sharing, or without parallel execution.
-    """
-    pass
 
 
 
@@ -1432,6 +1518,15 @@ class haloScheduler:
         self._jobmanager=jobManager(use_simulator=use_simulator)
 
 
+        # Store the statistics in batch level
+        self._num_process_in_batch = []
+        self._qubit_utilization_in_batch = [] 
+        self._batch_shared_ratio = []
+
+
+
+        # NEW: event to interrupt the mapping / annealing algorithm
+        self._mapping_interrupt_event = threading.Event()
 
     def store_log(self, filename: str):
         """
@@ -1447,22 +1542,54 @@ class haloScheduler:
             f.write("------------------Statistics:---------------------------------")
             f.write(f"Total running time: {self._total_running_time}\n")
             f.write(f"Finished process count: {self._finished_process_count}\n")
-            f.write("Average waiting time per process:\n")
-            if self._finished_process_count > 0:
-                avg_waiting_time = self._total_running_time / self._finished_process_count
-                f.write(f"{avg_waiting_time}\n")
-            else:
-                f.write("N/A\n")
             f.write("Throughput: \n")
             if self._total_running_time > 0:
                 throughput = self._finished_process_count / self._total_running_time
                 f.write(f"{throughput}\n")
             else:
                 f.write("N/A\n")
-            f.write("----------------------Process waiting times-----------------------:\n")
 
+            f.write("----------------------Batch statistics-----------------------:\n")
+            # If they are lists:
+            for i, (num_proc, qubit_util) in enumerate(
+                zip(self._num_process_in_batch, self._qubit_utilization_in_batch)
+            ):
+                f.write(
+                    f"Batch {i}: Number of processes: {num_proc}, "
+                    f"Qubit utilization: {qubit_util}\n"
+                )
+
+
+            for i, shared_ratio in enumerate(self._batch_shared_ratio):
+                f.write(f"Batch {i}: Shared ratio: {shared_ratio}\n")
+            # Averages
+            if self._batch_shared_ratio:
+                average_shared_ratio = sum(self._batch_shared_ratio) / len(self._batch_shared_ratio)
+            else:                
+                average_shared_ratio = 0.0
+            f.write(f"Average shared ratio per batch: {average_shared_ratio}\n")
+
+
+
+            if self._num_process_in_batch and self._qubit_utilization_in_batch:
+                average_num_process = sum(self._num_process_in_batch) / len(self._num_process_in_batch)
+                average_qubit_utilization = (
+                    sum(self._qubit_utilization_in_batch) / len(self._qubit_utilization_in_batch)
+                )
+            else:
+                average_num_process = 0.0
+                average_qubit_utilization = 0.0
+            f.write(f"Average number of processes per batch: {average_num_process}\n")
+            f.write(f"Average qubit utility per batch: {average_qubit_utilization}\n")
+
+            f.write("----------------------Process waiting times-----------------------:\n")
+            average_waiting_time = 0.0
             for process_id, waiting_time in self._process_waiting_time.items():
                 f.write(f"Process {process_id}: {waiting_time}\n")
+                average_waiting_time += waiting_time
+            if self._process_waiting_time:
+                average_waiting_time /= len(self._process_waiting_time)
+            f.write(f"Average waiting time across all processes: {average_waiting_time}\n")
 
             f.write("----------------------Process fidelities-----------------------:\n")
             for process_id, fidelity in self._process_fidelity.items():
@@ -1475,37 +1602,54 @@ class haloScheduler:
 
     def _execution_worker(self):
         """
-        Consumer thread:
-        1. Pulls a scheduled batch from the queue.
-        2. Sends it to hardware (Blocking)
-        3. Updates results and cleans up
+        Consumer Thread: Pulls jobs, executes them, and updates state.
+        Wrapped in try/except to prevent silent thread death.
         """
+        print("[SYSTEM] Execution Worker started.")
         while not self._stop_event.is_set():
             try:
-                #Wait for a job for up to 1 second, and then check stop event
-                job_data = self._scheduled_job_queue.get(timeout=1)
-            except queue.Empty:
-                continue
+                # Wait for a job
+                try:
+                    job_data = self._scheduled_job_queue.get(timeout=1)
+                except queue.Empty:
+                    continue
                 
-            #Unpack the job
-            shots, total_measurements, meas_map, instructions, process_ids = job_data
-
-            # --- 1. BLOCKING CALL TO HARDWARE ---
-            # This is where we wasted time before. Now only this thread waits.
-            result = self._jobmanager.execute_on_hardware(shots, total_measurements, meas_map, instructions)
-            
-            self._log.append(f"[HARDWARE RESULT] {result}")
-
-            # --- 2. UPDATE PROCESS STATES ---
-            # We need to lock because the Scheduler thread might be reading _process_queue
-            with self._lock:
-                self.update_process_queue(shots, result)
+                # Unpack
+                shots, total_meas, meas_map, insts, process_ids = job_data
                 
-                # Remove processes from "In Flight" so they can be scheduled again if needed
-                for pid in process_ids:
-                    self._in_flight_processes.discard(pid)
+                try:
+                    # --- EXECUTE (Crucial Step) ---
+                    result = self._jobmanager.execute_on_hardware(shots, total_meas, meas_map, insts)
+                    self._log.append(f"[HARDWARE RESULT] {result}")
 
-            self._scheduled_job_queue.task_done()   
+                    # --- UPDATE STATE ---
+                    with self._lock:
+                        self.update_process_queue(shots, result)
+
+
+                    # NEW: signal that a batch has finished, so any ongoing
+                    # mapping/annealing for the next batch should stop asap.
+                    self._mapping_interrupt_event.set()
+                    # (We will clear this in allocate_data_qubit before
+                    # starting the next anneal.)
+
+                except Exception as e:
+                    print(f"\n[CRITICAL ERROR] Execution Worker failed on batch {process_ids}: {e}")
+                    import traceback
+                    traceback.print_exc()
+                
+                finally:
+                    # --- CLEANUP (Must happen no matter what) ---
+                    # Always remove these IDs from in-flight, or the program will never halt.
+                    with self._lock:
+                        for pid in process_ids:
+                            self._in_flight_processes.discard(pid)
+                    
+                    self._scheduled_job_queue.task_done()
+
+            except Exception as outer_e:
+                print(f"[FATAL] Execution thread crashed completely: {outer_e}")
+                break  
 
 
     def start(self):
@@ -1522,16 +1666,59 @@ class haloScheduler:
             assert False, "Shot unaware scheduling not implemented yet."
 
         self._scheduler_thread.start()
-    
+        self._execution_thread = threading.Thread(target=self._execution_worker, daemon=True)
+        self._execution_thread.start()
+
+
+    def wait_until_done(self):
+        print("[SYSTEM] Waiting for all jobs to complete...")
+        last_print_time = 0
+        
+        while True:
+            with self._lock:
+                q_len = len(self._process_queue)
+                f_len = len(self._in_flight_processes)
+                j_empty = self._scheduled_job_queue.empty()
+            
+            # Exit condition
+            if q_len == 0 and f_len == 0 and j_empty:
+                print("\n[SYSTEM] All jobs completed. Queue empty. Flight empty.")
+                break
+            
+            # Print status every 3 seconds so you aren't guessing
+            if time.time() - last_print_time > 3:
+                print(f"[WAITING] Queue: {q_len} | In-Flight: {f_len} | Jobs Pending: {not j_empty}")
+                if f_len > 0:
+                    print(f"   -> Waiting for PIDs: {list(self._in_flight_processes)}")
+                last_print_time = time.time()
+            
+            time.sleep(0.5)
 
     def stop(self):
-        """
-        Stop the scheduling thread
-        """
-        self._stop_event.set()
-        if self._scheduler_thread is not None:
-            self._scheduler_thread.join()
-        self._log.append(f"[STOP] Scheduling stopped at time {time.time()-self._start_time}.")
+            """
+            Stop the scheduling thread AND the execution thread.
+            """
+            print("[SYSTEM] Stopping threads...")
+            self._stop_event.set()
+            
+            # 1. Join the Scheduler (Producer)
+            if self._scheduler_thread is not None:
+                self._scheduler_thread.join()
+                print("[SYSTEM] Scheduler thread stopped.")
+
+            # 2. Join the Executor (Consumer)
+            if self._execution_thread is not None:
+                # The execution thread might be stuck waiting on queue.get()
+                # We send a dummy/None item to unblock it if it's waiting
+                if self._execution_thread.is_alive():
+                    # Only put if empty to avoid messing up valid jobs, 
+                    # though the stop_event check in the worker handles this too.
+                    pass 
+                
+                self._execution_thread.join()
+                print("[SYSTEM] Execution thread stopped.")
+
+            self._log.append(f"[STOP] Scheduling stopped at time {time.time()-self._start_time}.")
 
 
     def add_process(self, process, source_id: int = -1):
@@ -1564,7 +1751,7 @@ class haloScheduler:
 
 
 
-    def get_next_batch(self, force_return: bool = False) -> Optional[Tuple[int, List[process]]]:
+    def get_next_batch(self, force_return: bool = False, shot_awareness: bool= True) -> Optional[Tuple[int, List[process]]]:
         """
         Get the next process batch.
         Return: List[process]
@@ -1598,10 +1785,19 @@ class haloScheduler:
                     process_batch.append(proc)
                     used_qubits+=proc.get_num_data_qubits()
                     remain_qubits-=proc.get_num_data_qubits()
+                else:
+                    continue
 
+    
+            """
+            Only return the batch when the total data qubit usage is 100%
+            """
             total_utility=used_qubits/(N_qubits*data_hardware_ratio)
-            if total_utility<=0.5 and not force_return:
-                return None
+            print("Total utility of selected batch:", total_utility)
+
+
+            # if total_utility<=1 and not force_return:
+            #     return None
             min_shots= min([proc.get_remaining_shots() for proc in process_batch])  
             self._log.append(f"[BATCH] Process batch with {[proc.get_process_id() for proc in process_batch]} selected with min shots {min_shots}.")
         return min_shots,process_batch
@@ -1614,19 +1810,10 @@ class haloScheduler:
 
         Return a Dict[int, tuple[int, int]] represent the data qubit mapping
         """
-        best_mapping=iteratively_find_the_best_mapping_for_data(process_batch,N_qubits)
+        self._mapping_interrupt_event.clear()
+        best_mapping=iteratively_find_the_best_mapping_for_data(process_batch,N_qubits,interrupt_event=self._mapping_interrupt_event)
         return best_mapping
     
-
-    def allocate_all_qubits(self, process_batch: List[process]) -> Dict[int, tuple[int, int]]:
-        """
-        Allocate all qubits (data + helper) for all processes in the batch
-
-        Return a Dict[int, tuple[int, int]] represent the data qubit mapping
-        """
-        best_mapping=iteratively_find_the_best_mapping_for_all(process_batch,N_qubits)
-        return best_mapping
-
 
 
 
@@ -1661,10 +1848,14 @@ class haloScheduler:
 
 
 
-    def dynamic_helper_scheduling(self, L: Dict[int, tuple[int, int]], process_batch: List[process])-> Tuple[int, Tuple[Dict[int, int], List[instruction]]]:
+    def dynamic_helper_scheduling(self, L: Dict[int, tuple[int, int]], process_batch: List[process])-> Tuple[float,float, int, Tuple[Dict[int, int], List[instruction]]]:
         """
         Dynamically assigne helper qubits and schedule instructions
         Return:
+
+            utilization: float
+                The qubit utilization in this batch, which is defined as the total data qubit usage divided by total qubit number
+
             total_measurement_size: int
                 The total measurement size across all processes
 
@@ -1676,7 +1867,8 @@ class haloScheduler:
         num_finished_process=0 
         process_finish_map = {i: False for i in process_batch}
 
-
+        used_qubit = set(L.keys())
+        utility = 0.0
 
         """
         Reform the mapping L to per process form
@@ -1696,7 +1888,7 @@ class haloScheduler:
         helper_qubit_zone = {phys for phys in range(N_qubits)} - set(L.keys())
         helper_qubit_available = {phys: True for phys in helper_qubit_zone}
 
-
+        helper_qubit_used_count = {phys: 0 for phys in helper_qubit_zone}
         #Store the current helper qubit assignment for each process:
         #For example, {1:{"s0":3, "s1":5}, 2:{"s0":10, "s1":12}}
         all_proc_id = {proc.get_process_id() for proc in process_batch}
@@ -1704,7 +1896,6 @@ class haloScheduler:
         num_available_helper_qubits = len(helper_qubit_zone)
 
 
-        # count=0
         # prev_scheduled_instruction_count=0
         while num_finished_process < len(process_batch):
             """
@@ -1785,6 +1976,33 @@ class haloScheduler:
                 We need to initialize a new measurement instruction
                 """
                 if next_inst.is_measurement():
+                    """
+                    If might be possible that user directly measure a helper qubit!
+                    In that case, we also have to assign the scheduled mapped address for the helper qubit
+                    """
+                    helper_qubit_address = next_inst.get_all_helper_qubit_addresses()
+
+                    if len(helper_qubit_address)==1:
+                        num_needed_helper_qubits = 0
+                        h_addr=helper_qubit_address[0]
+                        if h_addr not in current_helper_qubit_map[current_proc_id]:
+                            num_needed_helper_qubits = 1
+
+
+                        if num_needed_helper_qubits==1:
+                            if num_available_helper_qubits==0:
+                                proc.set_status(ProcessStatus.WAIT_FOR_HELPER)
+                                continue
+                            available_helper_qubit_list=[phys for phys, available in helper_qubit_available.items() if available]
+                            selected_helper_qubit = available_helper_qubit_list[0]
+                            next_inst.set_scheduled_mapped_address(h_addr, selected_helper_qubit)
+                            current_helper_qubit_map[current_proc_id][h_addr]=selected_helper_qubit
+                            helper_qubit_available[selected_helper_qubit]=False
+                            used_qubit.add(selected_helper_qubit)
+                            helper_qubit_used_count[selected_helper_qubit] += 1
+
+                            
+                            
                     next_inst.set_scheduled_classical_address(current_measurement_index)
                     final_scheduled_instructions.append(next_inst)
                     measurement_to_process_map[current_measurement_index] = current_proc_id
@@ -1878,11 +2096,15 @@ class haloScheduler:
                                                                                   data_qubit_mapping=data_qubit_physical_addresses,
                                                                                   available_helper_qubits=availble_helper_qubit_list,
                                                                                   helper_qubit_index=helper_qubit_index)
-                        
+                        helper_qubit_used_count[selected_helper_qubit] += 1
 
 
                         #Assign the helper qubit
                         if selected_helper_qubit is not None:
+
+                            #Update the used qubit set
+                            used_qubit.add(selected_helper_qubit)
+
                             next_inst.set_scheduled_mapped_address(all_helper_qubit[0],selected_helper_qubit)
                             current_helper_qubit_map[current_proc_id][all_helper_qubit[0]]=selected_helper_qubit
                             final_scheduled_instructions.append(next_inst)
@@ -1908,6 +2130,9 @@ class haloScheduler:
                                                                                   data_qubit_physical_addresses=data_qubit_physical_addresses,
                                                                                   available_helper_qubits=availble_helper_qubit_list,
                                                                                   helper_qubit_index=helper_qubit_index1)
+                        
+                        helper_qubit_used_count[selected_helper_qubit_1] += 1
+                        used_qubit.add(selected_helper_qubit_1)
                         current_helper_qubit_map[current_proc_id][all_helper_qubit[0]]=selected_helper_qubit_1
                         next_inst.set_scheduled_mapped_address(all_helper_qubit[0],selected_helper_qubit_1)
 
@@ -1923,8 +2148,8 @@ class haloScheduler:
                                                                                   helper_qubit_index=helper_qubit_index2)
                         
 
-
-
+                        used_qubit.add(selected_helper_qubit_2)
+                        helper_qubit_used_count[selected_helper_qubit_2] += 1
                         current_helper_qubit_map[current_proc_id][all_helper_qubit[1]]=selected_helper_qubit_2
                         next_inst.set_scheduled_mapped_address(all_helper_qubit[1],selected_helper_qubit_2)
 
@@ -1956,7 +2181,28 @@ class haloScheduler:
                 for inst in final_scheduled_instructions:
                     print(inst)
             raise ValueError("No measurement scheduled in this batch, something is wrong.")
-        return current_measurement_index, measurement_to_process_map, final_scheduled_instructions
+
+
+
+        utility = len(used_qubit)/N_qubits
+
+
+        """
+        Calculate the number of shared helper qubits
+        """
+
+        shared_helper_qubits = sum(1 for count in helper_qubit_used_count.values() if count > 1)
+        shared_ratio = shared_helper_qubits / len(helper_qubit_zone) if len(helper_qubit_zone) > 0 else 0.0
+        
+        
+        #Verify all instructions have scheduled mapped address
+        for inst in final_scheduled_instructions:
+            if not inst.is_scheduled():
+                raise ValueError(f"Instruction {inst} has no scheduled mapped address for all qubits.")
+        
+        
+        
+        return shared_ratio,utility, current_measurement_index, measurement_to_process_map, final_scheduled_instructions
 
 
 
@@ -2014,7 +2260,14 @@ class haloScheduler:
 
 
             # Step 3: Dynamically assign helper qubits and schedule instructions
-            total_measurements,measurement_to_process_map, scheduled_instructions = self.dynamic_helper_scheduling(L,[next_proc])
+            shared_ratio,utility ,total_measurements,measurement_to_process_map, scheduled_instructions = self.dynamic_helper_scheduling(L,[next_proc])
+
+            self._batch_shared_ratio.append(shared_ratio)
+            self._qubit_utilization_in_batch.append(utility)
+            self._num_process_in_batch.append(1)
+            self._log.append(f"[UTILITY] New batch has utility {utility}.")
+            self._log.append(f"[PROCESS COUNT] New batch has 1 processes.")
+            self._log.append(f"[SHARING RATIO] New batch has helper qubit sharing ratio {shared_ratio}.")
 
             # Step 4: Send the scheduled instructions to hardware
             result=self._jobmanager.execute_on_hardware(shots,total_measurements,measurement_to_process_map,scheduled_instructions)
@@ -2036,116 +2289,318 @@ class haloScheduler:
         self._total_running_time=end_time-start_time
 
 
-
     def halo_scheduling(self):
         """
         The main scheduling algorithm (PRODUCER).
-        It decouples compilation from execution. 
-        It compiles batches and pushes them to a job queue for the background thread.
+        Improved version:
+          - The scheduler only compiles a new batch when either:
+              (1) It has been spinning for more than `max_spinning_time`, OR
+              (2) The queue is rich enough that we can fill a large fraction
+                  of the physical data-qubit space (target_batch_utilization).
         """
         start_time = time.time()
         self._start_time = start_time
 
-        previous_spinning_start_time = 0
+        # --- Tunable knobs ---
+        max_spinning_time = 40.0      # seconds: condition (1)
+        target_batch_utilization = 0.8  # e.g. 80% of data-qubit zone: condition (2)
+
         is_spinning = False
-        max_spinning_time = 1  # Seconds to wait before forcing a batch
+        spinning_start_time = 0.0
 
-        # Loop until stopped AND no work remains
-        # We check _in_flight_processes to ensure we don't exit while jobs are running
-        while not self._stop_event.is_set() or len(self._process_queue) > 0 or len(self._in_flight_processes) > 0:
-
-            # ---------------------------------------------------------
-            # Step 1: Get the next batch of processes
-            # ---------------------------------------------------------
-            
-            # We use a Lock because the Consumer thread is modifying _process_queue (removing finished jobs)
-            # and _in_flight_processes (removing completed IDs)
+        while (
+            not self._stop_event.is_set()
+            or len(self._process_queue) > 0
+            or len(self._in_flight_processes) > 0
+        ):
+            # ------------------------------------------------------------------
+            # 0. Fast exit if no queued work but jobs are still running.
+            # ------------------------------------------------------------------
             with self._lock:
-                # If queue is empty but jobs are running, we just wait.
-                if len(self._process_queue) == 0:
-                    time.sleep(0.01)
-                    continue
+                queue_empty = (len(self._process_queue) == 0)
+                in_flight = len(self._in_flight_processes)
 
-            # Determine if we should force a batch return
-            force = False
+
+
+            if queue_empty:
+                # Nothing new to schedule; reset spinning and wait for arrivals
+                is_spinning = False
+                time.sleep(0.01)
+                continue
+
+            # ------------------------------------------------------------------
+            # 1. Estimate the *best possible* data-qubit utilization
+            #    we could achieve from the current queue if we packed optimally.
+            # ------------------------------------------------------------------
+            with self._lock:
+                # Only consider processes that are NOT currently in flight.
+                available_processes = [
+                    p for p in self._process_queue
+                    if p.get_process_id() not in self._in_flight_processes
+                ]
+
+            if not available_processes:
+                # All processes already in flight; just wait for them to finish.
+                is_spinning = False
+                time.sleep(1)
+
+                print("[SCHEDULER] All processes are currently in flight; waiting.")
+                continue
+
+            # Capacity of the data-qubit region
+            data_qubit_capacity = int(N_qubits * data_hardware_ratio)
+            if data_qubit_capacity <= 0:
+                raise ValueError("Data-qubit capacity is non-positive; check N_qubits and data_hardware_ratio.")
+
+            # Greedy upper-bound: sort processes by size (descending) and pack
+            # until we hit the capacity. This approximates the *maximum* util.
+            # This is only used for the decision "is it worth scheduling now?"
+            total_data_qubits = 0
+            for proc in sorted(available_processes, key=lambda p: p.get_num_data_qubits(), reverse=True):
+                dq = proc.get_num_data_qubits()
+                if dq > data_qubit_capacity:
+                    # This process alone is too big; get_next_batch will assert on it.
+                    continue
+                if total_data_qubits + dq > data_qubit_capacity:
+                    continue
+                total_data_qubits += dq
+
+            potential_utilization = total_data_qubits / data_qubit_capacity if data_qubit_capacity > 0 else 0.0
+
+            # ------------------------------------------------------------------
+            # 2. Decide whether we are allowed to schedule the next batch:
+            #    - Condition (2): potential_utilization >= target_batch_utilization
+            #    - Condition (1): spinning_time >= max_spinning_time
+            # ------------------------------------------------------------------
+            now = time.time()
+
+            # Condition (2): enough stuff in the queue to "fill the machine"
+            ready_due_to_util = (potential_utilization >= target_batch_utilization)
+
+            # Condition (1): we have spun for too long waiting for more jobs
+            if not is_spinning and not ready_due_to_util:
+                # Start timing a spin interval
+                is_spinning = True
+                spinning_start_time = now
+
+            ready_due_to_spin = False
             if is_spinning:
-                spinning_time = time.time() - previous_spinning_start_time
+                spinning_time = now - spinning_start_time
                 if spinning_time >= max_spinning_time:
-                    force = True
-            
-            # Get batch (Note: get_next_batch must be updated to ignore _in_flight_processes)
-            batchresult = self.get_next_batch(force_return=force)
+                    ready_due_to_spin = True
+
+            # If neither condition is met, keep waiting and DO NOT schedule yet.
+            if not ready_due_to_util and not ready_due_to_spin:
+                time.sleep(0.1)
+                continue
+
+            # At this point we are allowed to schedule:
+            #   - If only "spin" condition fired, we will force a batch even if
+            #     utilization isn't great (to avoid starvation).
+            #   - If util condition fired, we try to get a high-utility batch.
+            force_return = ready_due_to_spin and not ready_due_to_util
+
+            if force_return:
+                print(f"[SCHEDULER] Forcing batch due to spin timeout after {spinning_time:.2f}s.")
+            else:
+                print(f"[SCHEDULER] Scheduling new batch")
+            batchresult = self.get_next_batch(force_return=force_return)
 
             if batchresult is None:
+                print("[SCHEDULER] Could not form a valid batch yet. Keep spinning / waiting.")
+                # Could not form a valid batch yet. Keep spinning / waiting.
+                # (This can happen due to get_next_batch's internal 50% util threshold.)
                 if not is_spinning:
-                    previous_spinning_start_time = time.time()
-                is_spinning = True
-                # CRITICAL: Sleep briefly to prevent CPU burn while waiting for the 
-                # Consumer thread to finish jobs and free up resources.
-                time.sleep(0.01) 
+                    is_spinning = True
+                    spinning_start_time = time.time()
+                time.sleep(0.01)
                 continue
 
-            # We have a batch!
+            # We successfully formed a batch; reset spinning state.
             is_spinning = False
-            shots, process_batch = batchresult
 
-            if len(process_batch) == 0:
+            shots, process_batch = batchresult
+            if len(process_batch) == 0 or shots == 0:
+                # Nothing meaningful to run; just continue.
+                print("[SCHEDULER] Empty batch returned; continuing.")
+                time.sleep(0.01)
                 continue
 
-            # ---------------------------------------------------------
-            # Step 1.5: Mark processes as "In Flight"
-            # ---------------------------------------------------------
-            # We must mark them NOW so the next loop iteration doesn't pick them up
+            # ------------------------------------------------------------------
+            # 3. Mark processes as in-flight so they won't be picked again
+            #    until the Execution Worker updates their remaining shots.
+            # ------------------------------------------------------------------
             with self._lock:
                 for proc in process_batch:
                     self._in_flight_processes.add(proc.get_process_id())
 
-            # ---------------------------------------------------------
-            # Step 2: Allocate Data Qubit Territory
-            # ---------------------------------------------------------
-            L = self.allocate_data_qubit(process_batch)
-
-            # ---------------------------------------------------------
-            # Step 3: Dynamic Helper Scheduling (Compilation)
-            # ---------------------------------------------------------
-            # print(f"[SCHEDULER] Compiling batch {[p.get_process_id() for p in process_batch]}...")
-            
-            total_measurements, measurement_to_process_map, scheduled_instructions = \
-                self.dynamic_helper_scheduling(L, process_batch)
-
-            # ---------------------------------------------------------
-            # Step 4: Dispatch to Execution Queue (Non-Blocking)
-            # ---------------------------------------------------------
-            # Instead of waiting for hardware, we bundle the job and push it to the queue.
-            # The Execution Worker thread will handle the waiting.
-            
-            job_package = (
-                shots, 
-                total_measurements, 
-                measurement_to_process_map, 
-                scheduled_instructions, 
-                [p.get_process_id() for p in process_batch] # Pass IDs for tracking
-            )
-            
-            self._scheduled_job_queue.put(job_package)
-            
-            # print(f"[SCHEDULER] Pushed batch to Execution Queue. Queue Size: {self._scheduled_job_queue.qsize()}")
-
-            # ---------------------------------------------------------
-            # Step 5: Reset Mappings for Next Compilation
-            # ---------------------------------------------------------
-            # We reset the mappings here so the Process objects are clean for the 
-            # next time they are picked up (after the Consumer thread updates their shots).
+            # Clear any old mapping state in the processes
             for proc in process_batch:
                 proc.reset_all_mapping()
 
-            # LOOP RESTART: Immediately go back to Step 1 to schedule the next batch!
-            
-        
-        # End of Loop
+            # ------------------------------------------------------------------
+            # 4. Allocate Data Qubit Territory
+            # ------------------------------------------------------------------
+            L = self.allocate_data_qubit(process_batch)
+
+            print(f"[SCHEDULER] Allocated data qubits for batch {[p.get_process_id() for p in process_batch]}: {L}")
+
+            # ------------------------------------------------------------------
+            # 5. Dynamic Helper Scheduling (Compilation)
+            # ------------------------------------------------------------------
+            shared_ratio,utility, total_measurements, measurement_to_process_map, scheduled_instructions = \
+                self.dynamic_helper_scheduling(L, process_batch)
+
+            self._batch_shared_ratio.append(shared_ratio)
+            print(f"[SCHEDULER] Compiled batch {[p.get_process_id() for p in process_batch]} with utility {utility:.3f} and {total_measurements} measurements.")
+
+            self._qubit_utilization_in_batch.append(utility)
+            self._num_process_in_batch.append(len(process_batch))
+            self._log.append(f"[UTILITY] New batch has utility {utility}.")
+            self._log.append(f"[PROCESS COUNT] New batch has {len(process_batch)} processes.")
+            self._log.append(f"[SHARING RATIO] New batch has helper qubit sharing ratio {shared_ratio}.")
+            # ------------------------------------------------------------------
+            # 6. Dispatch to Execution Queue (Non-Blocking)
+            # ------------------------------------------------------------------
+            job_package = (
+                shots,
+                total_measurements,
+                measurement_to_process_map,
+                scheduled_instructions,
+                [p.get_process_id() for p in process_batch],
+            )
+            self._scheduled_job_queue.put(job_package)
+
+            # Loop repeats; we do NOT immediately grab a new batch anymore.
+            # We will only do so again once conditions (1) or (2) are met.
+
+        # End of main loop
         end_time = time.time()
         self._total_running_time = end_time - start_time
         print(f"[SCHEDULER] Scheduling thread finished. Total active time: {self._total_running_time:.2f}s")
+
+
+    # def halo_scheduling(self):
+    #     """
+    #     The main scheduling algorithm (PRODUCER).
+    #     It decouples compilation from execution. 
+    #     It compiles batches and pushes them to a job queue for the background thread.
+    #     """
+    #     start_time = time.time()
+    #     self._start_time = start_time
+
+    #     previous_spinning_start_time = 0
+    #     is_spinning = False
+    #     max_spinning_time = 1  # Seconds to wait before forcing a batch
+
+    #     # Loop until stopped AND no work remains
+    #     # We check _in_flight_processes to ensure we don't exit while jobs are running
+    #     while not self._stop_event.is_set() or len(self._process_queue) > 0 or len(self._in_flight_processes) > 0:
+
+    #         # ---------------------------------------------------------
+    #         # Step 1: Get the next batch of processes
+    #         # ---------------------------------------------------------
+            
+    #         # We use a Lock because the Consumer thread is modifying _process_queue (removing finished jobs)
+    #         # and _in_flight_processes (removing completed IDs)
+    #         with self._lock:
+    #             # If queue is empty but jobs are running, we just wait.
+    #             if len(self._process_queue) == 0:
+    #                 time.sleep(0.01)
+    #                 continue
+
+    #         # Determine if we should force a batch return
+    #         force = False
+    #         if is_spinning:
+    #             spinning_time = time.time() - previous_spinning_start_time
+    #             if spinning_time >= max_spinning_time:
+    #                 force = True
+            
+    #         # Get batch (Note: get_next_batch must be updated to ignore _in_flight_processes)
+    #         batchresult = self.get_next_batch(force_return=force)
+
+
+
+    #         if batchresult is None:
+    #             if not is_spinning:
+    #                 previous_spinning_start_time = time.time()
+    #             is_spinning = True
+    #             # CRITICAL: Sleep briefly to prevent CPU burn while waiting for the 
+    #             # Consumer thread to finish jobs and free up resources.
+    #             time.sleep(0.01) 
+    #             continue
+
+    #         # We have a batch!
+    #         is_spinning = False
+    #         shots, process_batch = batchresult
+
+    #         if len(process_batch) == 0:
+    #             continue
+
+    #         self._num_process_in_batch.append(len(process_batch) if batchresult else 0)            
+
+    #         for proc in process_batch:
+    #             proc.reset_all_mapping()
+
+    #         # ---------------------------------------------------------
+    #         # Step 1.5: Mark processes as "In Flight"
+    #         # ---------------------------------------------------------
+    #         # We must mark them NOW so the next loop iteration doesn't pick them up
+    #         with self._lock:
+    #             for proc in process_batch:
+    #                 self._in_flight_processes.add(proc.get_process_id())
+
+    #         # ---------------------------------------------------------
+    #         # Step 2: Allocate Data Qubit Territory
+    #         # ---------------------------------------------------------
+    #         L = self.allocate_data_qubit(process_batch)
+
+    #         # ---------------------------------------------------------
+    #         # Step 3: Dynamic Helper Scheduling (Compilation)
+    #         # ---------------------------------------------------------
+    #         # print(f"[SCHEDULER] Compiling batch {[p.get_process_id() for p in process_batch]}...")
+            
+    #         utility, total_measurements, measurement_to_process_map, scheduled_instructions = \
+    #             self.dynamic_helper_scheduling(L, process_batch)
+
+
+    #         self._qubit_utilization_in_batch.append(utility)
+    #         self._num_process_in_batch.append(len(process_batch))
+    #         self._log.append(f"[UTILITY] New batch has utility {utility}.")
+    #         self._log.append(f"[PROCESS COUNT] New batch has {len(process_batch)} processes.")
+
+    #         # ---------------------------------------------------------
+    #         # Step 4: Dispatch to Execution Queue (Non-Blocking)
+    #         # ---------------------------------------------------------
+    #         # Instead of waiting for hardware, we bundle the job and push it to the queue.
+    #         # The Execution Worker thread will handle the waiting.
+            
+    #         job_package = (
+    #             shots, 
+    #             total_measurements, 
+    #             measurement_to_process_map, 
+    #             scheduled_instructions, 
+    #             [p.get_process_id() for p in process_batch] # Pass IDs for tracking
+    #         )
+            
+    #         self._scheduled_job_queue.put(job_package)
+            
+    #         # print(f"[SCHEDULER] Pushed batch to Execution Queue. Queue Size: {self._scheduled_job_queue.qsize()}")
+
+    #         # ---------------------------------------------------------
+    #         # Step 5: Reset Mappings for Next Compilation
+    #         # ---------------------------------------------------------
+    #         # We reset the mappings here so the Process objects are clean for the 
+    #         # next time they are picked up (after the Consumer thread updates their shots).
+
+
+    #         # LOOP RESTART: Immediately go back to Step 1 to schedule the next batch!
+            
+        
+    #     # End of Loop
+    #     end_time = time.time()
+    #     self._total_running_time = end_time - start_time
+    #     print(f"[SCHEDULER] Scheduling thread finished. Total active time: {self._total_running_time:.2f}s")
 
 
     # def halo_scheduling(self):
@@ -2410,7 +2865,7 @@ def construct_qiskit_circuit_for_hardware_instruction(num_measurements:int, inst
                 qiskit_circuit.ry(params[0], qiskitaddress[0])
             case Instype.U3:
                 params=inst.get_params()
-                qiskit_circuit.u3(params[0], params[1], params[2], qiskitaddress[0])
+                qiskit_circuit.u(params[0], params[1], params[2], qiskitaddress[0])
             case Instype.U:
                 params=inst.get_params()
                 qiskit_circuit.u(params[0], params[1], params[2], qiskitaddress[0])
@@ -2449,10 +2904,8 @@ def random_arrival_generator(scheduler: haloScheduler,
 
     TODO: Support mixed benchmark suit in the future. Just need to randomly select a benchmark suit for each arrival.
     """
-    start = time.time()
+    start = time.time()  
     pid = 0
-    benchmark_suit = benchmark_type_to_benchmark[benchmark_Option]
-    benchmark_root_path = benchmark_file_path[benchmark_Option]
     while time.time() - start < max_time:
         # Wait random time until next arrival
         wait = random.expovariate(arrival_rate)  # mean 1/lambda
@@ -2463,7 +2916,16 @@ def random_arrival_generator(scheduler: haloScheduler,
         #shots = random.choice(np.arange(500, 2500, 100))
         shots = 1000
         #Generate a random process from benchmark suit
-        benchmark_id = random.randint(0, len(benchmark_suit) - 1)
+        if benchmark_Option!=benchmarktype.MIX:
+            benchmark_suit = benchmark_type_to_benchmark[benchmark_Option]
+            benchmark_root_path = benchmark_file_path[benchmark_Option]
+            benchmark_id = random.randint(0, len(benchmark_suit) - 1)
+        else:
+            benchmark_suit = random.choice(list(benchmark_type_to_benchmark.keys()))
+            benchmark_root_path = benchmark_file_path[benchmark_suit]
+            benchmark_id = random.randint(0, len(benchmark_suit) - 1)
+
+            
         proc = generate_process_from_benchmark(benchmark_root_path, benchmark_suit, benchmark_id, pid, shots, share_qubit=share_qubit)
         print(f"[ARRIVAL] New process {benchmark_suit[benchmark_id]} arriving, pid: {pid}, shots: {shots}")
         scheduler.add_process(proc, source_id=benchmark_id)
@@ -2530,7 +2992,7 @@ def test_scheduling():
         out_png="best_torino_mapping_6proc.png",
     )
 
-    total_measurements, measurement_to_process_map, scheduled_instructions = scheduler.dynamic_helper_scheduling(L, next_batch)
+    utility, total_measurements, measurement_to_process_map, scheduled_instructions = scheduler.dynamic_helper_scheduling(L, next_batch)
 
 
     print("Instructions:")
@@ -2556,34 +3018,403 @@ def test_scheduling():
 
 
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    random.seed(42)
+#     random.seed(42)
 
 
-    haloScheduler_instance=haloScheduler(use_simulator=False)
+#     haloScheduler_instance=haloScheduler(use_simulator=False)
+#     haloScheduler_instance.start()
+
+
+#     producer_thread = threading.Thread(
+#         target=random_arrival_generator,
+#         args=(haloScheduler_instance, 0.4, 25.0, True),
+#         daemon=False
+#     )
+#     producer_thread.start()
+
+
+#     simulation_time = 40  # seconds
+#     time.sleep(simulation_time)
+
+
+#     # Wait for producer to finish generating all processes
+#     producer_thread.join()
+
+
+#     haloScheduler_instance.stop()
+#     print("Simulation finished.")
+
+
+#     haloScheduler_instance.store_log("halo_multi_thread.txt")
+
+
+def run_experiment_general(log_path: str, lambda_: float, simulation_time: float = 40.0, seed: int = 42):
+    """
+    The generate function for running experiments with different parameters
+    """
+
+    random.seed(seed)
+    print("[MAIN] Starting Scheduler...")
+    haloScheduler_instance = haloScheduler(use_simulator=False)
     haloScheduler_instance.start()
 
 
+    share_helper_qubit = True
+    match Scheduling_Option:
+        case SchedulingOptions.NO_SHARING :
+            share_helper_qubit = False
+        case SchedulingOptions.BASELINE_SEQUENTIAL:
+            share_helper_qubit = False
+        case _:
+            share_helper_qubit = True
+
+    # 2. Start Producer (Process Generator)
+    print("[MAIN] Starting Producer...")
     producer_thread = threading.Thread(
         target=random_arrival_generator,
-        args=(haloScheduler_instance, 0.4, 25.0, True),
+        args=(haloScheduler_instance, lambda_, simulation_time, share_helper_qubit),
         daemon=False
     )
     producer_thread.start()
 
+    # 3. Wait for Simulation Time
+    print(f"[MAIN] Sleeping for simulation time...")
+    try:
+        # We loop with short sleeps so we can interrupt with Ctrl+C if needed
+        for _ in range(int(simulation_time / 10)): # 4 * 10s = 40s
+            time.sleep(10)
+            print(f"[MAIN] ... Simulation still running ...")
+    except KeyboardInterrupt:
+        print("\n[MAIN] Interrupted by user!")
 
-    simulation_time = 40  # seconds
-    time.sleep(simulation_time)
-
-
-    # Wait for producer to finish generating all processes
+    # 4. Wait for Producer to finish generating
+    print("[MAIN] Waiting for Producer thread to join...")
     producer_thread.join()
+    print("[MAIN] Producer finished.")
 
+    # 5. Wait for Scheduler to finish processing the backlog
+    # (This is where it looked stuck before - now it will tell you what it's doing)
+    print("[MAIN] Waiting for Scheduler to clear the job queue...")
+    haloScheduler_instance.wait_until_done()
 
+    # 6. Stop Threads cleanly
+    print("[MAIN] Stopping Scheduler threads...")
     haloScheduler_instance.stop()
-    print("Simulation finished.")
+
+    # 7. Save Log
+    print("[MAIN] Saving log...")
+    haloScheduler_instance.store_log(log_path)
+    print(f"[MAIN] Done. Log saved to {log_path}")
 
 
-    haloScheduler_instance.store_log("halo_multi_thread.txt")
 
+
+def run_experiment_on_multiX_small():
+    """
+    Run an experiment with multiple controlled-X benchmark on small hardware
+
+    We should run baseline, with helper, without helper qubit, and without shot-ware scheduling versions for comparison
+
+    The result log should be stored to the corresponding folder
+    """
+    # 1. Setup the algorithm
+
+    global Scheduling_Option
+    global benchmark_Option
+
+
+    #Run the HALO scheduling first
+    Scheduling_Option = SchedulingOptions.HALO
+    benchmark_Option = benchmarktype.MULTI_CONTROLLED_X_SMALL
+    log_path = "resultlog/multiXsmall/halo.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+    #Run the baseline sequential scheduling
+    # Scheduling_Option = SchedulingOptions.BASELINE_SEQUENTIAL
+    # benchmark_Option = benchmarktype.MULTI_CONTROLLED_X_SMALL
+    # log_path = "resultlog/multiXsmall/baseline_sequential.txt"
+    # run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+    #Run the no helper qubit scheduling
+    Scheduling_Option = SchedulingOptions.NO_SHARING
+    benchmark_Option = benchmarktype.MULTI_CONTROLLED_X_SMALL
+    log_path = "resultlog/multiXsmall/no_helper.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+
+
+def run_experiment_on_multiX_medium():
+    """
+    Run an experiment with multiple controlled-X benchmark on medium hardware
+    """
+    # 1. Setup the algorithm
+
+    global Scheduling_Option
+    global benchmark_Option
+
+
+    #Run the HALO scheduling first
+    Scheduling_Option = SchedulingOptions.HALO
+    benchmark_Option = benchmarktype.MULTI_CONTROLLED_X_MEDIUM
+    log_path = "resultlog/multiXmedium/halo.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+    #Run the baseline sequential scheduling
+    Scheduling_Option = SchedulingOptions.BASELINE_SEQUENTIAL
+    benchmark_Option = benchmarktype.MULTI_CONTROLLED_X_MEDIUM
+    log_path = "resultlog/multiXmedium/baseline_sequential.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+    #Run the no helper qubit scheduling
+    Scheduling_Option = SchedulingOptions.NO_SHARING
+    benchmark_Option = benchmarktype.MULTI_CONTROLLED_X_MEDIUM
+    log_path = "resultlog/multiXmedium/no_helper.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+
+
+
+def run_experiment_on_qec_small():
+    """
+    Run an experiment with QEC benchmark on small hardware
+    """
+    # 1. Setup the algorithm
+
+    global Scheduling_Option
+    global benchmark_Option
+
+
+    #Run the HALO scheduling first
+    Scheduling_Option = SchedulingOptions.HALO
+    benchmark_Option = benchmarktype.STABILIZER_MEASUREMENT_SMALL
+    log_path = "resultlog/qecsmall/halo.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+    # #Run the baseline sequential scheduling
+    # Scheduling_Option = SchedulingOptions.BASELINE_SEQUENTIAL
+    # benchmark_Option = benchmarktype.STABILIZER_MEASUREMENT_SMALL
+    # log_path = "resultlog/qecsmall/baseline_sequential.txt"
+    # run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+    #Run the no helper qubit scheduling
+    # Scheduling_Option = SchedulingOptions.NO_SHARING
+    # benchmark_Option = benchmarktype.STABILIZER_MEASUREMENT_SMALL
+    # log_path = "resultlog/qecsmall/no_helper.txt"
+    # run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+
+
+def run_experiment_on_qec_medium():
+    """
+    Run an experiment with QEC benchmark on medium hardware
+    """
+    # 1. Setup the algorithm
+
+    global Scheduling_Option
+    global benchmark_Option
+
+
+    #Run the HALO scheduling first
+    Scheduling_Option = SchedulingOptions.HALO
+    benchmark_Option = benchmarktype.STABILIZER_MEASUREMENT_MEDIUM
+    log_path = "resultlog/qecmedium/halo.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+    #Run the baseline sequential scheduling
+    Scheduling_Option = SchedulingOptions.BASELINE_SEQUENTIAL
+    benchmark_Option = benchmarktype.STABILIZER_MEASUREMENT_MEDIUM
+    log_path = "resultlog/qecmedium/baseline_sequential.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+    #Run the no helper qubit scheduling
+    Scheduling_Option = SchedulingOptions.NO_SHARING
+    benchmark_Option = benchmarktype.STABILIZER_MEASUREMENT_MEDIUM
+    log_path = "resultlog/qecmedium/no_helper.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+
+
+
+def run_experiment_on_random_small():
+    """
+    Run an experiment with random benchmark on small hardware
+    """
+    # 1. Setup the algorithm
+
+    global Scheduling_Option
+    global benchmark_Option
+
+
+    #Run the HALO scheduling first
+    Scheduling_Option = SchedulingOptions.HALO
+    benchmark_Option = benchmarktype.RANDOM_SMALL
+    log_path = "resultlog/randomsmall/halo.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+    #Run the baseline sequential scheduling
+    # Scheduling_Option = SchedulingOptions.BASELINE_SEQUENTIAL
+    # benchmark_Option = benchmarktype.RANDOM_SMALL
+    # log_path = "resultlog/randomsmall/baseline_sequential.txt"
+    # run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+    #Run the no helper qubit scheduling
+    Scheduling_Option = SchedulingOptions.NO_SHARING
+    benchmark_Option = benchmarktype.RANDOM_SMALL
+    log_path = "resultlog/randomsmall/no_helper.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+
+
+
+def run_experiment_on_random_medium():
+    # 1. Setup the algorithm
+
+    global Scheduling_Option
+    global benchmark_Option
+
+
+    #Run the HALO scheduling first
+    Scheduling_Option = SchedulingOptions.HALO
+    benchmark_Option = benchmarktype.RANDOM_MEDIUM
+    log_path = "resultlog/randommedium/halo.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+    #Run the baseline sequential scheduling
+    Scheduling_Option = SchedulingOptions.BASELINE_SEQUENTIAL
+    benchmark_Option = benchmarktype.RANDOM_MEDIUM
+    log_path = "resultlog/randommedium/baseline_sequential.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+    #Run the no helper qubit scheduling
+    Scheduling_Option = SchedulingOptions.NO_SHARING
+    benchmark_Option = benchmarktype.RANDOM_MEDIUM
+    log_path = "resultlog/randommedium/no_helper.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=40.0, seed=42)
+
+
+
+
+
+
+def run_experiment_on_mix():
+    global Scheduling_Option
+    global benchmark_Option
+
+    benchmark_Option = benchmarktype.MIX
+
+
+    #Run the HALO scheduling first
+    Scheduling_Option = SchedulingOptions.HALO
+    log_path = "resultlog/mix/halo.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=80.0, seed=42)
+
+
+    Scheduling_Option = SchedulingOptions.BASELINE_SEQUENTIAL
+    log_path = "resultlog/mix/baseline_sequential.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=80.0, seed=42)
+
+
+    #Run the no helper qubit scheduling
+    Scheduling_Option = SchedulingOptions.NO_SHARING
+    log_path = "resultlog/mix/no_helper.txt"
+    run_experiment_general(log_path=log_path, lambda_=0.6, simulation_time=80.0, seed=42)
+
+
+
+
+
+
+
+
+
+
+
+def run_all_experiments():
+    run_experiment_on_multiX_small()
+    run_experiment_on_multiX_medium()
+    run_experiment_on_qec_small()
+    run_experiment_on_qec_medium()
+    run_experiment_on_random_small()
+    run_experiment_on_random_medium()
+
+
+
+
+
+
+if __name__ == "__main__":
+    
+    # run_experiment_on_random_medium()
+    # run_experiment_on_multiX_small()
+    # run_experiment_on_qec_small()
+
+    run_experiment_on_multiX_medium()
+    run_experiment_on_random_small()
+    run_experiment_on_qec_medium()
+
+
+    #run_experiment_on_random_medium()
+    # import sys
+
+    # # 1. Setup
+    # random.seed(42)
+    # print("[MAIN] Starting Scheduler...")
+    # haloScheduler_instance = haloScheduler(use_simulator=False)
+    # haloScheduler_instance.start()
+
+    # # 2. Start Producer (Process Generator)
+    # print("[MAIN] Starting Producer...")
+    # producer_thread = threading.Thread(
+    #     target=random_arrival_generator,
+    #     args=(haloScheduler_instance, 0.6, 35.0, True),
+    #     daemon=False
+    # )
+    # producer_thread.start()
+
+    # # 3. Wait for Simulation Time
+    # print(f"[MAIN] Sleeping for simulation time...")
+    # try:
+    #     # We loop with short sleeps so we can interrupt with Ctrl+C if needed
+    #     for _ in range(4): # 4 * 10s = 40s
+    #         time.sleep(10)
+    #         print(f"[MAIN] ... Simulation still running ...")
+    # except KeyboardInterrupt:
+    #     print("\n[MAIN] Interrupted by user!")
+
+    # # 4. Wait for Producer to finish generating
+    # print("[MAIN] Waiting for Producer thread to join...")
+    # producer_thread.join()
+    # print("[MAIN] Producer finished.")
+
+    # # 5. Wait for Scheduler to finish processing the backlog
+    # # (This is where it looked stuck before - now it will tell you what it's doing)
+    # print("[MAIN] Waiting for Scheduler to clear the job queue...")
+    # haloScheduler_instance.wait_until_done()
+
+    # # 6. Stop Threads cleanly
+    # print("[MAIN] Stopping Scheduler threads...")
+    # haloScheduler_instance.stop()
+
+    # # 7. Save Log
+    # print("[MAIN] Saving log...")
+    # haloScheduler_instance.store_log("no_helper.txt")
+    # print("[MAIN] Done. Log saved to no_helper.txt")

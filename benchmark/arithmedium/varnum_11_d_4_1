@@ -1,0 +1,184 @@
+# Expression: (~((q2 & ~(q9))) | (q1 | ~(~(q8))))
+q = alloc_data(11)
+s = alloc_helper(15)
+CNOT q9, s0
+X s0
+H s1
+CNOT s0, s1
+Tdg s1
+CNOT q2, s1
+T s1
+CNOT s0, s1
+Tdg s1
+CNOT q2, s1
+T s0
+T s1
+H s1
+CNOT q2, s0
+T q2
+Tdg s0
+CNOT q2, s0
+CNOT q9, s0
+X s0
+deallocate_helper(s0)
+CNOT s1, s2
+X s2
+CNOT q9, s3
+X s3
+H s1
+CNOT s3, s1
+Tdg s1
+CNOT q2, s1
+T s1
+CNOT s3, s1
+Tdg s1
+CNOT q2, s1
+T s3
+T s1
+H s1
+CNOT q2, s3
+T q2
+Tdg s3
+CNOT q2, s3
+deallocate_helper(s1)
+CNOT q9, s3
+X s3
+deallocate_helper(s3)
+CNOT q8, s4
+X s4
+CNOT s4, s5
+X s5
+CNOT q8, s4
+X s4
+deallocate_helper(s4)
+X q1
+X s5
+H s6
+CNOT s5, s6
+Tdg s6
+CNOT q1, s6
+T s6
+CNOT s5, s6
+Tdg s6
+CNOT q1, s6
+T s5
+T s6
+H s6
+CNOT q1, s5
+T q1
+Tdg s5
+CNOT q1, s5
+X s5
+X q1
+X s6
+CNOT q8, s7
+X s7
+CNOT s7, s5
+X s5
+deallocate_helper(s5)
+CNOT q8, s7
+X s7
+deallocate_helper(s7)
+X s2
+X s6
+H s8
+CNOT s6, s8
+Tdg s8
+CNOT s2, s8
+T s8
+CNOT s6, s8
+Tdg s8
+CNOT s2, s8
+T s6
+T s8
+H s8
+CNOT s2, s6
+T s2
+Tdg s6
+CNOT s2, s6
+X s6
+X s2
+X s8
+CNOT q8, s9
+X s9
+CNOT s9, s10
+X s10
+CNOT q8, s9
+X s9
+deallocate_helper(s9)
+X q1
+X s10
+H s6
+CNOT s10, s6
+Tdg s6
+CNOT q1, s6
+T s6
+CNOT s10, s6
+Tdg s6
+CNOT q1, s6
+T s10
+T s6
+H s6
+CNOT q1, s10
+T q1
+Tdg s10
+CNOT q1, s10
+X s10
+X q1
+X s6
+deallocate_helper(s6)
+CNOT q8, s11
+X s11
+CNOT s11, s10
+X s10
+deallocate_helper(s10)
+CNOT q8, s11
+X s11
+deallocate_helper(s11)
+CNOT q9, s12
+X s12
+H s13
+CNOT s12, s13
+Tdg s13
+CNOT q2, s13
+T s13
+CNOT s12, s13
+Tdg s13
+CNOT q2, s13
+T s12
+T s13
+H s13
+CNOT q2, s12
+T q2
+Tdg s12
+CNOT q2, s12
+CNOT q9, s12
+X s12
+deallocate_helper(s12)
+CNOT s13, s2
+X s2
+deallocate_helper(s2)
+CNOT q9, s14
+X s14
+H s13
+CNOT s14, s13
+Tdg s13
+CNOT q2, s13
+T s13
+CNOT s14, s13
+Tdg s13
+CNOT q2, s13
+T s14
+T s13
+H s13
+CNOT q2, s14
+T q2
+Tdg s14
+CNOT q2, s14
+deallocate_helper(s13)
+CNOT q9, s14
+X s14
+deallocate_helper(s14)
+c0 = MEASURE s8
+deallocate_helper(s8)
+deallocate_data(q)
