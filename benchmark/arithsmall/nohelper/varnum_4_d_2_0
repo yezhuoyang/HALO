@@ -1,0 +1,9 @@
+q = alloc_data(6)
+CNOT q2, q4
+X q4
+CNOT q4, q5
+X q5
+CNOT q2, q4
+X q4
+c0 = MEASURE q5
+deallocate_data(q)

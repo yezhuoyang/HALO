@@ -1178,36 +1178,53 @@ def generate_program_without_helper_qubit(data_n, syn_n, original_inst_list: Lis
 
 
 
-
-
-
-
-benchmark_suit={
-    0:"cat_state_prep_n4",
-    1:"cat_state_verification_n4",
-    2:"repetition_code_distance3_n3",
-    3:"shor_parity_measurement_n4",
-    4:"shor_stabilizer_XZZX_n3",
-    5:"shor_stabilizer_ZZZZ_n4",
-    6:"syndrome_extraction_surface_n4"
+classical_logic_small_benchmark={
+    0: "varnum_3_d_3_0",
+    1: "varnum_3_d_3_1",
+    2: "varnum_3_d_4_0",
+    3: "varnum_3_d_4_1",
+    4: "varnum_4_d_2_0",
+    5: "varnum_4_d_2_1",
+    6: "varnum_4_d_3_0",
+    7: "varnum_4_d_3_1",
+    8: "varnum_4_d_4_0",
+    9: "varnum_4_d_4_1"
 }
 
 
 
-def rewrite_benchmark_program():
+
+classical_logic_medium_benchmark = {
+    0:  "varnum_7_d_5_0",
+    1:  "varnum_7_d_5_1",
+    2:  "varnum_8_d_4_0",
+    3:  "varnum_8_d_5_0",
+    4:  "varnum_9_d_4_0",
+    5:  "varnum_10_d_3_0",
+    6:  "varnum_10_d_3_1",
+    7:  "varnum_10_d_4_0",
+    8:  "varnum_11_d_4_0",
+    9:  "varnum_11_d_4_1",
+    10: "varnum_12_d_4_0",
+    11: "varnum_12_d_4_1",
+}
+
+
+
+def rewrite_benchmark_program(benchmarkname: str,benchmark_suit: dict):
     """
     Rewrite the benchmark program with the given ID to remove helper qubits.
     Store the file to the benchmarkdata directory with the same name.
     """
 
     for benchmark_id in benchmark_suit.keys():
-        file_path = f"C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\{benchmark_suit[benchmark_id]}"
+        file_path = f"C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\{benchmarkname}\\{benchmark_suit[benchmark_id]}"
 
         inst_list, data_n, syn_n, measure_n = parse_program_from_file(file_path)
 
         output_program = generate_program_without_helper_qubit(data_n, syn_n, inst_list)
 
-        output_file_path = f"C:\\Users\\yezhu\\Documents\\HALO\\benchmarkdata\\{benchmark_suit[benchmark_id]}"
+        output_file_path = f"C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\{benchmarkname}\\nohelper\\{benchmark_suit[benchmark_id]}"
 
         with open(output_file_path, "w") as f:
             f.write(output_program)
@@ -1310,9 +1327,15 @@ if __name__ == "__main__":
     #     generate_mcx_benchmark_medium(i)
 
 
-    simulate_benchmark_program("C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\arithsmall")
+    
+    benchmarkname="arithmedium"
+    rewrite_benchmark_program(benchmarkname, classical_logic_medium_benchmark)
 
-    simulate_benchmark_program("C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\arithmedium")
+
+
+    # simulate_benchmark_program("C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\arithsmall")
+
+    # simulate_benchmark_program("C:\\Users\\yezhu\\Documents\\HALO\\benchmark\\arithmedium")
 
 
 

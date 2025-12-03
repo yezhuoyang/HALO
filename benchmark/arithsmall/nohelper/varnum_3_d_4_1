@@ -1,0 +1,206 @@
+q = alloc_data(22)
+CNOT q1, q3
+X q3
+CNOT q1, q4
+X q4
+X q3
+X q4
+H q5
+CNOT q4, q5
+Tdg q5
+CNOT q3, q5
+T q5
+CNOT q4, q5
+Tdg q5
+CNOT q3, q5
+T q4
+T q5
+H q5
+CNOT q3, q4
+T q3
+Tdg q4
+CNOT q3, q4
+X q4
+X q3
+X q5
+CNOT q1, q4
+X q4
+CNOT q1, q3
+X q3
+CNOT q5, q6
+X q6
+CNOT q1, q7
+X q7
+CNOT q1, q8
+X q8
+X q7
+X q8
+H q5
+CNOT q8, q5
+Tdg q5
+CNOT q7, q5
+T q5
+CNOT q8, q5
+Tdg q5
+CNOT q7, q5
+T q8
+T q5
+H q5
+CNOT q7, q8
+T q7
+Tdg q8
+CNOT q7, q8
+X q8
+X q7
+X q5
+CNOT q1, q8
+X q8
+CNOT q1, q7
+X q7
+CNOT q0, q9
+H q10
+CNOT q2, q10
+Tdg q10
+CNOT q9, q10
+T q10
+CNOT q2, q10
+Tdg q10
+CNOT q9, q10
+T q2
+T q10
+H q10
+CNOT q9, q2
+T q9
+Tdg q2
+CNOT q9, q2
+CNOT q0, q9
+CNOT q10, q11
+X q11
+CNOT q0, q12
+H q10
+CNOT q2, q10
+Tdg q10
+CNOT q12, q10
+T q10
+CNOT q2, q10
+Tdg q10
+CNOT q12, q10
+T q2
+T q10
+H q10
+CNOT q12, q2
+T q12
+Tdg q2
+CNOT q12, q2
+CNOT q0, q12
+H q13
+CNOT q11, q13
+Tdg q13
+CNOT q6, q13
+T q13
+CNOT q11, q13
+Tdg q13
+CNOT q6, q13
+T q11
+T q13
+H q13
+CNOT q6, q11
+T q6
+Tdg q11
+CNOT q6, q11
+CNOT q0, q14
+H q15
+CNOT q2, q15
+Tdg q15
+CNOT q14, q15
+T q15
+CNOT q2, q15
+Tdg q15
+CNOT q14, q15
+T q2
+T q15
+H q15
+CNOT q14, q2
+T q14
+Tdg q2
+CNOT q14, q2
+CNOT q0, q14
+CNOT q15, q11
+X q11
+CNOT q0, q16
+H q15
+CNOT q2, q15
+Tdg q15
+CNOT q16, q15
+T q15
+CNOT q2, q15
+Tdg q15
+CNOT q16, q15
+T q2
+T q15
+H q15
+CNOT q16, q2
+T q16
+Tdg q2
+CNOT q16, q2
+CNOT q0, q16
+CNOT q1, q17
+X q17
+CNOT q1, q18
+X q18
+X q17
+X q18
+H q19
+CNOT q18, q19
+Tdg q19
+CNOT q17, q19
+T q19
+CNOT q18, q19
+Tdg q19
+CNOT q17, q19
+T q18
+T q19
+H q19
+CNOT q17, q18
+T q17
+Tdg q18
+CNOT q17, q18
+X q18
+X q17
+X q19
+CNOT q1, q18
+X q18
+CNOT q1, q17
+X q17
+CNOT q19, q6
+X q6
+CNOT q1, q20
+X q20
+CNOT q1, q21
+X q21
+X q20
+X q21
+H q19
+CNOT q21, q19
+Tdg q19
+CNOT q20, q19
+T q19
+CNOT q21, q19
+Tdg q19
+CNOT q20, q19
+T q21
+T q19
+H q19
+CNOT q20, q21
+T q20
+Tdg q21
+CNOT q20, q21
+X q21
+X q20
+X q19
+CNOT q1, q21
+X q21
+CNOT q1, q20
+X q20
+c0 = MEASURE q13
+deallocate_data(q)

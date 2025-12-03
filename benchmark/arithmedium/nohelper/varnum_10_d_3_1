@@ -1,0 +1,167 @@
+q = alloc_data(21)
+H q10
+CNOT q3, q10
+Tdg q10
+CNOT q4, q10
+T q10
+CNOT q3, q10
+Tdg q10
+CNOT q4, q10
+T q3
+T q10
+H q10
+CNOT q4, q3
+T q4
+Tdg q3
+CNOT q4, q3
+CNOT q2, q11
+X q11
+H q12
+CNOT q11, q12
+Tdg q12
+CNOT q10, q12
+T q12
+CNOT q11, q12
+Tdg q12
+CNOT q10, q12
+T q11
+T q12
+H q12
+CNOT q10, q11
+T q10
+Tdg q11
+CNOT q10, q11
+CNOT q2, q11
+X q11
+H q10
+CNOT q3, q10
+Tdg q10
+CNOT q4, q10
+T q10
+CNOT q3, q10
+Tdg q10
+CNOT q4, q10
+T q3
+T q10
+H q10
+CNOT q4, q3
+T q4
+Tdg q3
+CNOT q4, q3
+CNOT q7, q13
+X q13
+CNOT q1, q14
+X q14
+H q15
+CNOT q14, q15
+Tdg q15
+CNOT q13, q15
+T q15
+CNOT q14, q15
+Tdg q15
+CNOT q13, q15
+T q14
+T q15
+H q15
+CNOT q13, q14
+T q13
+Tdg q14
+CNOT q13, q14
+CNOT q1, q14
+X q14
+CNOT q7, q13
+X q13
+X q12
+X q15
+H q16
+CNOT q15, q16
+Tdg q16
+CNOT q12, q16
+T q16
+CNOT q15, q16
+Tdg q16
+CNOT q12, q16
+T q15
+T q16
+H q16
+CNOT q12, q15
+T q12
+Tdg q15
+CNOT q12, q15
+X q15
+X q12
+X q16
+CNOT q7, q17
+X q17
+CNOT q1, q18
+X q18
+H q15
+CNOT q18, q15
+Tdg q15
+CNOT q17, q15
+T q15
+CNOT q18, q15
+Tdg q15
+CNOT q17, q15
+T q18
+T q15
+H q15
+CNOT q17, q18
+T q17
+Tdg q18
+CNOT q17, q18
+CNOT q1, q18
+X q18
+CNOT q7, q17
+X q17
+H q19
+CNOT q3, q19
+Tdg q19
+CNOT q4, q19
+T q19
+CNOT q3, q19
+Tdg q19
+CNOT q4, q19
+T q3
+T q19
+H q19
+CNOT q4, q3
+T q4
+Tdg q3
+CNOT q4, q3
+CNOT q2, q20
+X q20
+H q12
+CNOT q20, q12
+Tdg q12
+CNOT q19, q12
+T q12
+CNOT q20, q12
+Tdg q12
+CNOT q19, q12
+T q20
+T q12
+H q12
+CNOT q19, q20
+T q19
+Tdg q20
+CNOT q19, q20
+CNOT q2, q20
+X q20
+H q19
+CNOT q3, q19
+Tdg q19
+CNOT q4, q19
+T q19
+CNOT q3, q19
+Tdg q19
+CNOT q4, q19
+T q3
+T q19
+H q19
+CNOT q4, q3
+T q4
+Tdg q3
+CNOT q4, q3
+c0 = MEASURE q16
+deallocate_data(q)

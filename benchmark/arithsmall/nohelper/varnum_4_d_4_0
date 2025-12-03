@@ -1,0 +1,636 @@
+q = alloc_data(29)
+X q0
+X q1
+H q4
+CNOT q1, q4
+Tdg q4
+CNOT q0, q4
+T q4
+CNOT q1, q4
+Tdg q4
+CNOT q0, q4
+T q1
+T q4
+H q4
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+X q1
+X q0
+X q4
+CNOT q4, q5
+X q5
+X q0
+X q1
+H q4
+CNOT q1, q4
+Tdg q4
+CNOT q0, q4
+T q4
+CNOT q1, q4
+Tdg q4
+CNOT q0, q4
+T q1
+T q4
+H q4
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+X q1
+X q0
+X q4
+CNOT q5, q6
+X q6
+X q0
+X q1
+H q7
+CNOT q1, q7
+Tdg q7
+CNOT q0, q7
+T q7
+CNOT q1, q7
+Tdg q7
+CNOT q0, q7
+T q1
+T q7
+H q7
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+X q1
+X q0
+X q7
+CNOT q7, q5
+X q5
+X q0
+X q1
+H q7
+CNOT q1, q7
+Tdg q7
+CNOT q0, q7
+T q7
+CNOT q1, q7
+Tdg q7
+CNOT q0, q7
+T q1
+T q7
+H q7
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+X q1
+X q0
+X q7
+CNOT q1, q8
+X q8
+H q9
+CNOT q3, q9
+Tdg q9
+CNOT q2, q9
+T q9
+CNOT q3, q9
+Tdg q9
+CNOT q2, q9
+T q3
+T q9
+H q9
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+X q8
+X q9
+H q10
+CNOT q9, q10
+Tdg q10
+CNOT q8, q10
+T q10
+CNOT q9, q10
+Tdg q10
+CNOT q8, q10
+T q9
+T q10
+H q10
+CNOT q8, q9
+T q8
+Tdg q9
+CNOT q8, q9
+X q9
+X q8
+X q10
+H q9
+CNOT q3, q9
+Tdg q9
+CNOT q2, q9
+T q9
+CNOT q3, q9
+Tdg q9
+CNOT q2, q9
+T q3
+T q9
+H q9
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+CNOT q1, q8
+X q8
+H q11
+CNOT q3, q11
+Tdg q11
+CNOT q2, q11
+T q11
+CNOT q3, q11
+Tdg q11
+CNOT q2, q11
+T q3
+T q11
+H q11
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+X q1
+X q11
+H q12
+CNOT q11, q12
+Tdg q12
+CNOT q1, q12
+T q12
+CNOT q11, q12
+Tdg q12
+CNOT q1, q12
+T q11
+T q12
+H q12
+CNOT q1, q11
+T q1
+Tdg q11
+CNOT q1, q11
+X q11
+X q1
+X q12
+H q11
+CNOT q3, q11
+Tdg q11
+CNOT q2, q11
+T q11
+CNOT q3, q11
+Tdg q11
+CNOT q2, q11
+T q3
+T q11
+H q11
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+H q13
+CNOT q12, q13
+Tdg q13
+CNOT q10, q13
+T q13
+CNOT q12, q13
+Tdg q13
+CNOT q10, q13
+T q12
+T q13
+H q13
+CNOT q10, q12
+T q10
+Tdg q12
+CNOT q10, q12
+H q14
+CNOT q3, q14
+Tdg q14
+CNOT q2, q14
+T q14
+CNOT q3, q14
+Tdg q14
+CNOT q2, q14
+T q3
+T q14
+H q14
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+X q1
+X q14
+H q12
+CNOT q14, q12
+Tdg q12
+CNOT q1, q12
+T q12
+CNOT q14, q12
+Tdg q12
+CNOT q1, q12
+T q14
+T q12
+H q12
+CNOT q1, q14
+T q1
+Tdg q14
+CNOT q1, q14
+X q14
+X q1
+X q12
+H q14
+CNOT q3, q14
+Tdg q14
+CNOT q2, q14
+T q14
+CNOT q3, q14
+Tdg q14
+CNOT q2, q14
+T q3
+T q14
+H q14
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+CNOT q1, q15
+X q15
+H q16
+CNOT q3, q16
+Tdg q16
+CNOT q2, q16
+T q16
+CNOT q3, q16
+Tdg q16
+CNOT q2, q16
+T q3
+T q16
+H q16
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+X q15
+X q16
+H q10
+CNOT q16, q10
+Tdg q10
+CNOT q15, q10
+T q10
+CNOT q16, q10
+Tdg q10
+CNOT q15, q10
+T q16
+T q10
+H q10
+CNOT q15, q16
+T q15
+Tdg q16
+CNOT q15, q16
+X q16
+X q15
+X q10
+H q16
+CNOT q3, q16
+Tdg q16
+CNOT q2, q16
+T q16
+CNOT q3, q16
+Tdg q16
+CNOT q2, q16
+T q3
+T q16
+H q16
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+CNOT q1, q15
+X q15
+H q17
+CNOT q13, q17
+Tdg q17
+CNOT q6, q17
+T q17
+CNOT q13, q17
+Tdg q17
+CNOT q6, q17
+T q13
+T q17
+H q17
+CNOT q6, q13
+T q6
+Tdg q13
+CNOT q6, q13
+CNOT q1, q18
+X q18
+H q19
+CNOT q3, q19
+Tdg q19
+CNOT q2, q19
+T q19
+CNOT q3, q19
+Tdg q19
+CNOT q2, q19
+T q3
+T q19
+H q19
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+X q18
+X q19
+H q20
+CNOT q19, q20
+Tdg q20
+CNOT q18, q20
+T q20
+CNOT q19, q20
+Tdg q20
+CNOT q18, q20
+T q19
+T q20
+H q20
+CNOT q18, q19
+T q18
+Tdg q19
+CNOT q18, q19
+X q19
+X q18
+X q20
+H q19
+CNOT q3, q19
+Tdg q19
+CNOT q2, q19
+T q19
+CNOT q3, q19
+Tdg q19
+CNOT q2, q19
+T q3
+T q19
+H q19
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+CNOT q1, q18
+X q18
+H q21
+CNOT q3, q21
+Tdg q21
+CNOT q2, q21
+T q21
+CNOT q3, q21
+Tdg q21
+CNOT q2, q21
+T q3
+T q21
+H q21
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+X q1
+X q21
+H q22
+CNOT q21, q22
+Tdg q22
+CNOT q1, q22
+T q22
+CNOT q21, q22
+Tdg q22
+CNOT q1, q22
+T q21
+T q22
+H q22
+CNOT q1, q21
+T q1
+Tdg q21
+CNOT q1, q21
+X q21
+X q1
+X q22
+H q21
+CNOT q3, q21
+Tdg q21
+CNOT q2, q21
+T q21
+CNOT q3, q21
+Tdg q21
+CNOT q2, q21
+T q3
+T q21
+H q21
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+H q13
+CNOT q22, q13
+Tdg q13
+CNOT q20, q13
+T q13
+CNOT q22, q13
+Tdg q13
+CNOT q20, q13
+T q22
+T q13
+H q13
+CNOT q20, q22
+T q20
+Tdg q22
+CNOT q20, q22
+H q23
+CNOT q3, q23
+Tdg q23
+CNOT q2, q23
+T q23
+CNOT q3, q23
+Tdg q23
+CNOT q2, q23
+T q3
+T q23
+H q23
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+X q1
+X q23
+H q22
+CNOT q23, q22
+Tdg q22
+CNOT q1, q22
+T q22
+CNOT q23, q22
+Tdg q22
+CNOT q1, q22
+T q23
+T q22
+H q22
+CNOT q1, q23
+T q1
+Tdg q23
+CNOT q1, q23
+X q23
+X q1
+X q22
+H q23
+CNOT q3, q23
+Tdg q23
+CNOT q2, q23
+T q23
+CNOT q3, q23
+Tdg q23
+CNOT q2, q23
+T q3
+T q23
+H q23
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+CNOT q1, q24
+X q24
+H q25
+CNOT q3, q25
+Tdg q25
+CNOT q2, q25
+T q25
+CNOT q3, q25
+Tdg q25
+CNOT q2, q25
+T q3
+T q25
+H q25
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+X q24
+X q25
+H q20
+CNOT q25, q20
+Tdg q20
+CNOT q24, q20
+T q20
+CNOT q25, q20
+Tdg q20
+CNOT q24, q20
+T q25
+T q20
+H q20
+CNOT q24, q25
+T q24
+Tdg q25
+CNOT q24, q25
+X q25
+X q24
+X q20
+H q25
+CNOT q3, q25
+Tdg q25
+CNOT q2, q25
+T q25
+CNOT q3, q25
+Tdg q25
+CNOT q2, q25
+T q3
+T q25
+H q25
+CNOT q2, q3
+T q2
+Tdg q3
+CNOT q2, q3
+CNOT q1, q24
+X q24
+X q0
+X q1
+H q26
+CNOT q1, q26
+Tdg q26
+CNOT q0, q26
+T q26
+CNOT q1, q26
+Tdg q26
+CNOT q0, q26
+T q1
+T q26
+H q26
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+X q1
+X q0
+X q26
+CNOT q26, q27
+X q27
+X q0
+X q1
+H q26
+CNOT q1, q26
+Tdg q26
+CNOT q0, q26
+T q26
+CNOT q1, q26
+Tdg q26
+CNOT q0, q26
+T q1
+T q26
+H q26
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+X q1
+X q0
+X q26
+CNOT q27, q6
+X q6
+X q0
+X q1
+H q28
+CNOT q1, q28
+Tdg q28
+CNOT q0, q28
+T q28
+CNOT q1, q28
+Tdg q28
+CNOT q0, q28
+T q1
+T q28
+H q28
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+X q1
+X q0
+X q28
+CNOT q28, q27
+X q27
+X q0
+X q1
+H q28
+CNOT q1, q28
+Tdg q28
+CNOT q0, q28
+T q28
+CNOT q1, q28
+Tdg q28
+CNOT q0, q28
+T q1
+T q28
+H q28
+CNOT q0, q1
+T q0
+Tdg q1
+CNOT q0, q1
+X q1
+X q0
+X q28
+c0 = MEASURE q17
+deallocate_data(q)

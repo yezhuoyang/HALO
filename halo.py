@@ -3419,9 +3419,9 @@ if __name__ == "__main__":
 
     #run_experiment_on_multiX_medium()
     #run_experiment_on_random_small()
-    run_experiment_on_qec_medium()
+    #run_experiment_on_qec_medium()
 
-    #run_experiment_on_arithmetic_small()
+    run_experiment_on_arithmetic_small()
 
 
     #run_experiment_on_random_medium()

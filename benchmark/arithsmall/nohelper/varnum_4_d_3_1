@@ -1,0 +1,138 @@
+q = alloc_data(8)
+X q2
+X q0
+H q4
+CNOT q0, q4
+Tdg q4
+CNOT q2, q4
+T q4
+CNOT q0, q4
+Tdg q4
+CNOT q2, q4
+T q0
+T q4
+H q4
+CNOT q2, q0
+T q2
+Tdg q0
+CNOT q2, q0
+X q0
+X q2
+X q4
+X q4
+X q0
+H q5
+CNOT q0, q5
+Tdg q5
+CNOT q4, q5
+T q5
+CNOT q0, q5
+Tdg q5
+CNOT q4, q5
+T q0
+T q5
+H q5
+CNOT q4, q0
+T q4
+Tdg q0
+CNOT q4, q0
+X q0
+X q4
+X q5
+X q2
+X q0
+H q4
+CNOT q0, q4
+Tdg q4
+CNOT q2, q4
+T q4
+CNOT q0, q4
+Tdg q4
+CNOT q2, q4
+T q0
+T q4
+H q4
+CNOT q2, q0
+T q2
+Tdg q0
+CNOT q2, q0
+X q0
+X q2
+X q4
+H q6
+CNOT q1, q6
+Tdg q6
+CNOT q5, q6
+T q6
+CNOT q1, q6
+Tdg q6
+CNOT q5, q6
+T q1
+T q6
+H q6
+CNOT q5, q1
+T q5
+Tdg q1
+CNOT q5, q1
+X q2
+X q0
+H q7
+CNOT q0, q7
+Tdg q7
+CNOT q2, q7
+T q7
+CNOT q0, q7
+Tdg q7
+CNOT q2, q7
+T q0
+T q7
+H q7
+CNOT q2, q0
+T q2
+Tdg q0
+CNOT q2, q0
+X q0
+X q2
+X q7
+X q7
+X q0
+H q5
+CNOT q0, q5
+Tdg q5
+CNOT q7, q5
+T q5
+CNOT q0, q5
+Tdg q5
+CNOT q7, q5
+T q0
+T q5
+H q5
+CNOT q7, q0
+T q7
+Tdg q0
+CNOT q7, q0
+X q0
+X q7
+X q5
+X q2
+X q0
+H q7
+CNOT q0, q7
+Tdg q7
+CNOT q2, q7
+T q7
+CNOT q0, q7
+Tdg q7
+CNOT q2, q7
+T q0
+T q7
+H q7
+CNOT q2, q0
+T q2
+Tdg q0
+CNOT q2, q0
+X q0
+X q2
+X q7
+c0 = MEASURE q6
+deallocate_data(q)
