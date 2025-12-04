@@ -246,6 +246,18 @@ benchmark_type_to_benchmark={
 
 
 
+all_benchmark_option_list = [  benchmarktype.RANDOM_SMALL,
+                        benchmarktype.RANDOM_MEDIUM,
+                        benchmarktype.MULTI_CONTROLLED_X_SMALL,
+                        benchmarktype.MULTI_CONTROLLED_X_MEDIUM,
+                        benchmarktype.STABILIZER_MEASUREMENT_SMALL,
+                        benchmarktype.STABILIZER_MEASUREMENT_MEDIUM,
+                        benchmarktype.CLASSICAL_LOGIC_SMALL,
+                        benchmarktype.CLASSICAL_LOGIC_MEDIUM
+                    ]
+
+
+
 
 class SchedulingOptions(Enum):
     BASELINE_SEQUENTIAL = 0
@@ -338,7 +350,6 @@ max_data_helper_distance=10
 
 # N_qubits=10
 # hardware_distance_pair=all_pairs_distances(N_qubits, simple_10_qubit_coupling_map())
-
 
 
 
@@ -438,6 +449,10 @@ def calculate_inter_cost_for_process(process_list: List[process],proc_mapping: D
 
 
     return inter_cost
+
+
+
+
 
 
 
@@ -1156,7 +1171,7 @@ def iteratively_find_the_best_mapping_for_data(
     steps_per_restart: int = 800,
     move_prob: float = 0.3,
     interrupt_event: Optional[threading.Event] = None,
-) -> Dict[int, Tuple[int, int]]:
+) -> Tuple[float,float,float,float,float,Dict[int, Tuple[int, int]]]:
     """
     Heuristic search for a good mapping using simulated annealing
     with multiple random restarts.
@@ -1267,11 +1282,21 @@ def iteratively_find_the_best_mapping_for_data(
 
         print(f"[Restart {r}] best so far: {global_best_cost}")
 
+        intro_norm  =  state.sum_intro   / state.intro_max
+        helper_norm = state.sum_helper  / state.helper_max
+        inter_norm  = state.sum_inter   / state.inter_max
+        compact_norm = state.sum_compact / state.compact_max
+        path_norm   = state.path_conflict_sum / state.path_conflict_max
+        print(f"[Restart {r}] Different cost: intro={intro_norm}, helper={helper_norm}, inter={inter_norm}, compact={compact_norm}, path={path_norm}")
+
+
     print("Final best cost:", global_best_cost)
+    print(f"Final different cost: intro={intro_norm}, helper={helper_norm}, inter={inter_norm}, compact={compact_norm}, path={path_norm}")
     if global_best_mapping is None:
         # Should not happen unless there were no valid mappings
         raise RuntimeError("No valid mapping found during annealing.")
-    return global_best_mapping
+    return intro_norm, helper_norm, inter_norm, compact_norm, path_norm, global_best_mapping
+
 
 
 
@@ -1516,12 +1541,21 @@ class haloScheduler:
         self._jobmanager=jobManager(use_simulator=use_simulator)
 
 
+        self._current_batch_id = 0
         # Store the statistics in batch level
-        self._num_process_in_batch = []
-        self._qubit_utilization_in_batch = [] 
-        self._batch_shared_ratio = []
+        # We have the use dictionary to store the statistics for each batch, as the schedule might not be in order.
+        self._num_process_in_batch = {}
+        self._ave_fidelity_in_batch = {}
+        self._qubit_utilization_in_batch = {} 
+        self._batch_shared_ratio = {}
 
 
+        # Different cost for each batch
+        self._batch_intro_cost = {}
+        self._batch_helper_cost=  {}
+        self._batch_inter_cost = {}
+        self._batch_compact_cost = {}
+        self._batch_path_cost = {}
 
         # NEW: event to interrupt the mapping / annealing algorithm
         self._mapping_interrupt_event = threading.Event()
@@ -1550,7 +1584,7 @@ class haloScheduler:
             f.write("----------------------Batch statistics-----------------------:\n")
             # If they are lists:
             for i, (num_proc, qubit_util) in enumerate(
-                zip(self._num_process_in_batch, self._qubit_utilization_in_batch)
+                zip(self._num_process_in_batch.values(), self._qubit_utilization_in_batch.values())
             ):
                 f.write(
                     f"Batch {i}: Number of processes: {num_proc}, "
@@ -1562,7 +1596,7 @@ class haloScheduler:
                 f.write(f"Batch {i}: Shared ratio: {shared_ratio}\n")
             # Averages
             if self._batch_shared_ratio:
-                average_shared_ratio = sum(self._batch_shared_ratio) / len(self._batch_shared_ratio)
+                average_shared_ratio = sum(self._batch_shared_ratio.values()) / len(self._batch_shared_ratio)
             else:                
                 average_shared_ratio = 0.0
             f.write(f"Average shared ratio per batch: {average_shared_ratio}\n")
@@ -1570,9 +1604,9 @@ class haloScheduler:
 
 
             if self._num_process_in_batch and self._qubit_utilization_in_batch:
-                average_num_process = sum(self._num_process_in_batch) / len(self._num_process_in_batch)
+                average_num_process = sum(self._num_process_in_batch.values()) / len(self._num_process_in_batch)
                 average_qubit_utilization = (
-                    sum(self._qubit_utilization_in_batch) / len(self._qubit_utilization_in_batch)
+                    sum(self._qubit_utilization_in_batch.values()) / len(self._qubit_utilization_in_batch)
                 )
             else:
                 average_num_process = 0.0
@@ -1580,6 +1614,39 @@ class haloScheduler:
             f.write(f"Average number of processes per batch: {average_num_process}\n")
             f.write(f"Average qubit utility per batch: {average_qubit_utilization}\n")
 
+
+            f.write("----------------------Batch different costs-----------------------:\n")
+            for i in range(len(self._batch_intro_cost)):
+                f.write(
+                    f"Batch {i}: Intro: {self._batch_intro_cost[i]}, "
+                    f"Helper: {self._batch_helper_cost[i]}, "
+                    f"Inter: {self._batch_inter_cost[i]}, "
+                    f"Compact: {self._batch_compact_cost[i]}, "
+                    f"Path: {self._batch_path_cost[i]}\n"
+                )
+                f.write(
+                    f"Process number: {self._num_process_in_batch[i]}, "
+                    f"Average fidelity: {self._ave_fidelity_in_batch[i]}\n"
+                )
+            # Averages
+            if self._batch_intro_cost:
+                average_intro = sum(self._batch_intro_cost.values()) / len(self._batch_intro_cost)
+                average_helper = sum(self._batch_helper_cost.values()) / len(self._batch_helper_cost)
+                average_inter = sum(self._batch_inter_cost.values()) / len(self._batch_inter_cost)
+                average_compact = sum(self._batch_compact_cost.values()) / len(self._batch_compact_cost)
+                average_path = sum(self._batch_path_cost.values()) / len(self._batch_path_cost)
+            else:
+                average_intro = 0.0
+                average_helper = 0.0
+                average_inter = 0.0
+                average_compact = 0.0
+                average_path = 0.0
+            f.write(f"Average Intro cost per batch: {average_intro}\n")
+            f.write(f"Average Helper cost per batch: {average_helper}\n")
+            f.write(f"Average Inter cost per batch: {average_inter}\n")
+            f.write(f"Average Compact cost per batch: {average_compact}\n")
+            f.write(f"Average Path cost per batch: {average_path}\n")
+            
             f.write("----------------------Process waiting times-----------------------:\n")
             average_waiting_time = 0.0
             for process_id, waiting_time in self._process_waiting_time.items():
@@ -1613,7 +1680,7 @@ class haloScheduler:
                     continue
                 
                 # Unpack
-                shots, total_meas, meas_map, insts, process_ids = job_data
+                batch_id, shots, total_meas, meas_map, insts, process_ids = job_data
                 
                 try:
                     # --- EXECUTE (Crucial Step) ---
@@ -1622,7 +1689,7 @@ class haloScheduler:
 
                     # --- UPDATE STATE ---
                     with self._lock:
-                        self.update_process_queue(shots, result)
+                        self.update_process_queue(batch_id,shots, result)
 
 
                     # NEW: signal that a batch has finished, so any ongoing
@@ -1802,7 +1869,7 @@ class haloScheduler:
     
 
 
-    def allocate_data_qubit(self, process_batch: List[process]) -> Dict[int, tuple[int, int]]:
+    def allocate_data_qubit(self, process_batch: List[process]) -> Tuple[float, float, float, float, float,Dict[int, tuple[int, int]]]:
         """
         Allocate data qubit territory for all processes in the batch
 
@@ -1813,8 +1880,8 @@ class haloScheduler:
         For the very first batch, we are waiting to nothing so we can do less restarts
         """
         n_restarts = 30
-        best_mapping=iteratively_find_the_best_mapping_for_data(process_batch,N_qubits,n_restarts=n_restarts,interrupt_event=self._mapping_interrupt_event)
-        return best_mapping
+        intro_norm, helper_norm, inter_norm, compact_norm, path_norm,best_mapping=iteratively_find_the_best_mapping_for_data(process_batch,N_qubits,n_restarts=n_restarts,interrupt_event=self._mapping_interrupt_event)
+        return intro_norm, helper_norm, inter_norm, compact_norm, path_norm,best_mapping
     
 
 
@@ -2254,12 +2321,16 @@ class haloScheduler:
 
 
             # Step 2: Allocate data qubit territory for all processes
-            L=self.allocate_data_qubit([next_proc])
-
+            intro_norm, helper_norm, inter_norm, compact_norm, path_norm,L=self.allocate_data_qubit([next_proc])
+            self._log.append(f"[MAPPING] Process {next_proc.get_process_id()} allocated data qubit mapping with intro_cost: {intro_norm}, helper_cost: {helper_norm}, inter_cost: {inter_norm}, compact_cost: {compact_norm}, path_cost: {path_norm}.")
             # Step 2.5: Update the data qubit mapping in each process
             # for proc in process_batch:
             #     proc.update_data_qubit_mapping(L)
-
+            self._batch_intro_cost.append(intro_norm)
+            self._batch_helper_cost.append(helper_norm)
+            self._batch_inter_cost.append(inter_norm)
+            self._batch_compact_cost.append(compact_norm)
+            self._batch_path_cost.append(path_norm)
 
             # Step 3: Dynamically assign helper qubits and schedule instructions
             shared_ratio,utility ,total_measurements,measurement_to_process_map, scheduled_instructions = self.dynamic_helper_scheduling(L,[next_proc])
@@ -2443,7 +2514,18 @@ class haloScheduler:
             # ------------------------------------------------------------------
             # 4. Allocate Data Qubit Territory
             # ------------------------------------------------------------------
-            L = self.allocate_data_qubit(process_batch)
+
+            intro_norm, helper_norm, inter_norm, compact_norm, path_norm,L=self.allocate_data_qubit(process_batch)
+            self._log.append(f"[MAPPING] Batch {[p.get_process_id() for p in process_batch]} allocated data qubit mapping with intro_cost: {intro_norm}, helper_cost: {helper_norm}, inter_cost: {inter_norm}, compact_cost: {compact_norm}, path_cost: {path_norm}.")
+            # Step 2.5: Update the data qubit mapping in each process
+            # for proc in process_batch:
+            #     proc.update_data_qubit_mapping(L)
+            self._batch_intro_cost[self._current_batch_id] = intro_norm
+            self._batch_helper_cost[self._current_batch_id] = helper_norm
+            self._batch_inter_cost[self._current_batch_id] = inter_norm
+            self._batch_compact_cost[self._current_batch_id] = compact_norm
+            self._batch_path_cost[self._current_batch_id] = path_norm
+
 
             print(f"[SCHEDULER] Allocated data qubits for batch {[p.get_process_id() for p in process_batch]}: {L}")
 
@@ -2453,11 +2535,11 @@ class haloScheduler:
             shared_ratio,utility, total_measurements, measurement_to_process_map, scheduled_instructions = \
                 self.dynamic_helper_scheduling(L, process_batch)
 
-            self._batch_shared_ratio.append(shared_ratio)
+            self._batch_shared_ratio[self._current_batch_id] = shared_ratio
             print(f"[SCHEDULER] Compiled batch {[p.get_process_id() for p in process_batch]} with utility {utility:.3f} and {total_measurements} measurements.")
 
-            self._qubit_utilization_in_batch.append(utility)
-            self._num_process_in_batch.append(len(process_batch))
+            self._qubit_utilization_in_batch[self._current_batch_id] = utility
+            self._num_process_in_batch[self._current_batch_id] = len(process_batch)
             self._log.append(f"[UTILITY] New batch has utility {utility}.")
             self._log.append(f"[PROCESS COUNT] New batch has {len(process_batch)} processes.")
             self._log.append(f"[SHARING RATIO] New batch has helper qubit sharing ratio {shared_ratio}.")
@@ -2465,6 +2547,7 @@ class haloScheduler:
             # 6. Dispatch to Execution Queue (Non-Blocking)
             # ------------------------------------------------------------------
             job_package = (
+                self._current_batch_id,
                 shots,
                 total_measurements,
                 measurement_to_process_map,
@@ -2472,7 +2555,7 @@ class haloScheduler:
                 [p.get_process_id() for p in process_batch],
             )
             self._scheduled_job_queue.put(job_package)
-
+            self._current_batch_id += 1
             # Loop repeats; we do NOT immediately grab a new batch anymore.
             # We will only do so again once conditions (1) or (2) are met.
 
@@ -2696,7 +2779,7 @@ class haloScheduler:
     #     end_time=time.time()
     #     self._total_running_time=end_time-start_time
 
-    def update_process_queue(self, shots: int ,result: Dict[int, Dict[str, int]]):
+    def update_process_queue(self, batch_id: int, shots: int ,result: Dict[int, Dict[str, int]]):
         """
         Update the process queue after one batch execution.
         
@@ -2724,6 +2807,7 @@ class haloScheduler:
         """
         # CRITICAL FIX: Iterate over list(self._process_queue) to create a copy.
         # We cannot iterate over the list while removing items from it simultaneously.
+        average_fidelity = 0.0
         for proc in list(self._process_queue):
             if proc.finish_all_shots():
 
@@ -2745,6 +2829,7 @@ class haloScheduler:
                     try:
                         ideal_result = load_ideal_count_output(benchmark_Option, benchmark_id)
                         self._process_fidelity[proc.get_process_id()] = distribution_fidelity(ideal_result, proc.get_result_counts())
+                        average_fidelity += self._process_fidelity[proc.get_process_id()]
                     except Exception as e:
                         print(f"[WARNING] Could not calculate fidelity for P{proc.get_process_id()}: {e}")
                         self._process_fidelity[proc.get_process_id()] = 0.0
@@ -2759,6 +2844,10 @@ class haloScheduler:
                 self._log.append(f"[PROCESS WAITING TIME] Process {proc.get_process_id()} waiting time: {self._process_waiting_time[proc.get_process_id()]} seconds")
                 
                 self._finished_process_count += 1
+        # Update average fidelity for this batch
+        if self._finished_process_count > 0:
+            average_fidelity /= self._finished_process_count
+        self._ave_fidelity_in_batch[batch_id] = average_fidelity
 
     # def update_process_queue(self, shots: int ,result: Dict[int, Dict[str, int]]):
     #     """
@@ -2923,8 +3012,9 @@ def random_arrival_generator(scheduler: haloScheduler,
             benchmark_root_path = benchmark_file_path[benchmark_Option]
             benchmark_id = random.randint(0, len(benchmark_suit) - 1)
         else:
-            benchmark_suit = random.choice(list(benchmark_type_to_benchmark.keys()))
-            benchmark_root_path = benchmark_file_path[benchmark_suit]
+            random_benchmark_option = random.choice(all_benchmark_option_list)
+            benchmark_suit = benchmark_type_to_benchmark[random_benchmark_option]
+            benchmark_root_path = benchmark_file_path[random_benchmark_option]
             benchmark_id = random.randint(0, len(benchmark_suit) - 1)
 
             
@@ -3418,11 +3508,12 @@ if __name__ == "__main__":
     # run_experiment_on_qec_small()
 
     #run_experiment_on_multiX_medium()
-    #run_experiment_on_random_small()
+    run_experiment_on_random_small()
     #run_experiment_on_qec_medium()
 
-    run_experiment_on_arithmetic_small()
-
+    #run_experiment_on_arithmetic_small()
+    #run_experiment_on_mix()
+    #run_experiment_on_arithmetic_medium()
 
     #run_experiment_on_random_medium()
     # import sys
